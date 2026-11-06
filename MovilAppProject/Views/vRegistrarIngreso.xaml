@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MovilAppProject.Views.vRegistrarIngreso"
+             Title="vRegistrarIngreso">
+    <ScrollView>
+        <VerticalStackLayout
+         Padding="20"
+         Spacing="15">
+        <!--<Label 
+            Text="Registrar Ingreso"
+            VerticalOptions="Center" 
+            HorizontalOptions="Center" />-->
+
+            <!--SALDO Y RESUMEN DEL MES (HU2 - criterio 2)-->
+            <Border Padding="15"
+                        StrokeThickness="0"
+                        BackgroundColor="#1E3A5F"
+                        StrokeShape="RoundRectangle 12">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Saldo disponible"
+                               TextColor="#CFD8E3"
+                               FontSize="14"/>
+                    <Label x:Name="lblSaldo"
+                               Text="$ 0.00"
+                               TextColor="White"
+                               FontSize="28"
+                               FontAttributes="Bold"/>
+                    <Label x:Name="lblIngresosMes"
+                               Text="Ingresos del mes: $ 0.00"
+                               TextColor="#A5D6A7"
+                               FontSize="14"/>
+                </VerticalStackLayout>
+            </Border>
+            <Label x:Name="lblTitulo"
+                       Text="REGISTRAR INGRESO"
+                       TextColor="Blue"
+                       FontSize="22"
+                       HorizontalOptions="Center"/>
+
+            <!--GRID 5 FILAS x 2 COLUMNAS-->
+            <Grid RowSpacing="10"
+                      ColumnSpacing="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+
+                <!--Tipo-->
+                <Label Text="Tipo"
+                           VerticalOptions="Center"
+                           Grid.Row="0"
+                           Grid.Column="0"/>
+
+                <Picker x:Name="pkTipo"
+                            Title="Seleccione el tipo"
+                            Grid.Row="0"
+                            Grid.Column="1">
+                    <Picker.Items>
+                        <x:String>Gasto</x:String>
+                        <x:String>Ingreso</x:String>
+                    </Picker.Items>
+                </Picker>
+
+                <!--Categoria: se oculta cuando el tipo es Ingreso (V01)-->
+                <Label x:Name="lblCategoria"
+                           Text="Categoría"
+                           VerticalOptions="Center"
+                           Grid.Row="1"
+                           Grid.Column="0"/>
+
+                <Picker x:Name="pkCategoria"
+                            Title="Seleccione una categoría"
+                            Grid.Row="1"
+                            Grid.Column="1">
+                    <Picker.Items>
+                        <x:String>Alimentación</x:String>
+                        <x:String>Transporte</x:String>
+                        <x:String>Vivienda</x:String>
+                        <x:String>Ocio</x:String>
+                        <x:String>Educación</x:String>
+                        <x:String>Otros</x:String>
+                    </Picker.Items>
+                </Picker>
+
+                <!--Monto-->
+                <Label Text="Monto (USD)"
+                           VerticalOptions="Center"
+                           Grid.Row="2"
+                           Grid.Column="0"/>
+
+                <Entry x:Name="txtMonto"
+                           Placeholder="0.00"
+                           Keyboard="Numeric"
+                           Grid.Row="2"
+                           Grid.Column="1"/>
+
+                <!--Fecha-->
+                <Label Text="Fecha"
+                           VerticalOptions="Center"
+                           Grid.Row="3"
+                           Grid.Column="0"/>
+
+                <DatePicker x:Name="dpFecha"
+                                Format="dd/MM/yyyy"
+                                Grid.Row="3"
+                                Grid.Column="1"/>
+
+                <!--Nota-->
+                <Label Text="Nota (opcional)"
+                           VerticalOptions="Center"
+                           Grid.Row="4"
+                           Grid.Column="0"/>
+
+                <Entry x:Name="txtNota"
+                           Placeholder="Ej.: pago de beca"
+                           Grid.Row="4"
+                           Grid.Column="1"/>
+
+
+            </Grid>
+
+            <Button x:Name="btnGuardar"
+                        Text="Guardar"
+                        BackgroundColor="#2E7D32"
+                        Clicked="btnGuardar_Clicked"/>
+
+            <Button x:Name="btnLimpiar"
+                        Text="Limpiar"
+                        BackgroundColor="Gray"
+                        Clicked="btnLimpiar_Clicked"/>
+
+
+        </VerticalStackLayout>
+
+    </ScrollView>
+</ContentPage>
