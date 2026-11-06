@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#512BD4</color>
-    <color name="colorPrimaryDark">#2B0B98</color>
-    <color name="colorAccent">#2B0B98</color>
+    <!-- PB04 · Colores de la barra de estado de Android (mockups GastoFácil) -->
+    <color name="colorPrimary">#1B2F2B</color>
+    <color name="colorPrimaryDark">#1B2F2B</color>
+    <color name="colorAccent">#A6501A</color>
 </resources>

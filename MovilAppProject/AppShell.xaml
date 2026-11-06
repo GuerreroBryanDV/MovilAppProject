@@ -1,14 +1,45 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+    AppShell.xaml  (PB04 · MAP-4)
+    Navegación principal de GastoFácil con 4 pestañas.
+    Como en los mockups: sin barra superior (el título va dentro de cada
+    página) y barra de pestañas blanca en la parte inferior.
+    Cada página vive en la carpeta Views (convención vNombre).
+-->
 <Shell
     x:Class="MovilAppProject.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:MovilAppProject"
-    Title="MovilAppProject">
+    xmlns:views="clr-namespace:MovilAppProject.Views"
+    Title="GastoFácil"
+    Shell.FlyoutBehavior="Disabled"
+    Shell.NavBarIsVisible="False"
+    Shell.BackgroundColor="{StaticResource ColorFondo}"
+    Shell.TabBarBackgroundColor="{StaticResource White}"
+    Shell.TabBarForegroundColor="{StaticResource Primary}"
+    Shell.TabBarTitleColor="{StaticResource Primary}"
+    Shell.TabBarUnselectedColor="{StaticResource ColorTextoSecundario}">
 
-    <ShellContent
-        Title="Home"
-        ContentTemplate="{DataTemplate local:MainPage}"
-        Route="MainPage" />
+    <TabBar>
+        <ShellContent
+            Title="Inicio"
+            ContentTemplate="{DataTemplate views:vInicio}"
+            Route="vInicio" />
+
+        <ShellContent
+            Title="Regla"
+            ContentTemplate="{DataTemplate views:vRegla}"
+            Route="vRegla" />
+
+        <ShellContent
+            Title="Estadísticas"
+            ContentTemplate="{DataTemplate views:vEstadisticas}"
+            Route="vEstadisticas" />
+
+        <ShellContent
+            Title="Ajustes"
+            ContentTemplate="{DataTemplate views:vAjustes}"
+            Route="vAjustes" />
+    </TabBar>
 
 </Shell>

@@ -1,14 +1,158 @@
 ﻿<?xml version = "1.0" encoding = "UTF-8" ?>
+<!--
+    App.xaml
+    Recursos GLOBALES de GastoFácil (PB04 · MAP-4).
+    Colores y estilos tomados de los mockups (Figuras 1–8).
+    Todo lo definido aquí se usa en cualquier página con
+    {StaticResource NombreDelRecurso}.
+-->
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:MovilAppProject"
              x:Class="MovilAppProject.App">
     <Application.Resources>
         <ResourceDictionary>
+
+            <!-- Colores y estilos de la plantilla (Resources/Styles) -->
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
+
+            <!-- ===== ESTILOS GLOBALES IMPLÍCITOS (sin x:Key) ===== -->
+
+            <!-- Todas las páginas con fondo beige -->
+            <Style TargetType="ContentPage" ApplyToDerivedTypes="True">
+                <Setter Property="BackgroundColor" Value="{StaticResource ColorFondo}"/>
+            </Style>
+
+            <!-- ===== ESTILOS GLOBALES EXPLÍCITOS (con x:Key) ===== -->
+
+            <!-- Título de cada pantalla: "Nuevo movimiento", "Regla 50/40/10" -->
+            <Style x:Key="TituloPagina" TargetType="Label">
+                <Setter Property="FontFamily" Value="OpenSansSemibold"/>
+                <Setter Property="FontAttributes" Value="Bold"/>
+                <Setter Property="FontSize" Value="24"/>
+                <Setter Property="TextColor" Value="{StaticResource Primary}"/>
+            </Style>
+
+            <!-- Subtítulo: "Octubre 2026 · Ingresos del mes: $1,000.00" -->
+            <Style x:Key="TextoSecundario" TargetType="Label">
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="TextColor" Value="{StaticResource ColorTextoSecundario}"/>
+            </Style>
+
+            <!-- Etiqueta de campo: "Monto", "Categoría", "Fecha" -->
+            <Style x:Key="EtiquetaCampo" TargetType="Label">
+                <Setter Property="FontFamily" Value="OpenSansSemibold"/>
+                <Setter Property="FontSize" Value="13"/>
+                <Setter Property="TextColor" Value="{StaticResource Primary}"/>
+            </Style>
+
+            <!-- Monto grande: "$ 12.00", "$230.00" -->
+            <Style x:Key="MontoGrande" TargetType="Label">
+                <Setter Property="FontFamily" Value="OpenSansSemibold"/>
+                <Setter Property="FontAttributes" Value="Bold"/>
+                <Setter Property="FontSize" Value="34"/>
+                <Setter Property="TextColor" Value="{StaticResource Primary}"/>
+            </Style>
+
+            <!-- Montos de ingreso (verde) y egreso (rojo) -->
+            <Style x:Key="MontoIngreso" TargetType="Label">
+                <Setter Property="FontAttributes" Value="Bold"/>
+                <Setter Property="TextColor" Value="{StaticResource ColorIngreso}"/>
+            </Style>
+            <Style x:Key="MontoGasto" TargetType="Label">
+                <Setter Property="FontAttributes" Value="Bold"/>
+                <Setter Property="TextColor" Value="{StaticResource ColorGasto}"/>
+            </Style>
+
+            <!-- Títulos de los grupos de la regla -->
+            <Style x:Key="GrupoNecesidades" TargetType="Label">
+                <Setter Property="FontAttributes" Value="Bold"/>
+                <Setter Property="TextColor" Value="{StaticResource ColorNecesidades}"/>
+            </Style>
+            <Style x:Key="GrupoAhorro" TargetType="Label">
+                <Setter Property="FontAttributes" Value="Bold"/>
+                <Setter Property="TextColor" Value="{StaticResource ColorAhorro}"/>
+            </Style>
+            <Style x:Key="GrupoLujos" TargetType="Label">
+                <Setter Property="FontAttributes" Value="Bold"/>
+                <Setter Property="TextColor" Value="{StaticResource ColorLujos}"/>
+            </Style>
+
+            <!-- Botón principal verde oscuro: "Guardar gasto", "Usar huella" -->
+            <Style x:Key="BotonPrimario" TargetType="Button">
+                <Setter Property="BackgroundColor" Value="{StaticResource Primary}"/>
+                <Setter Property="TextColor" Value="{StaticResource White}"/>
+                <Setter Property="FontAttributes" Value="Bold"/>
+                <Setter Property="CornerRadius" Value="12"/>
+                <Setter Property="HeightRequest" Value="50"/>
+            </Style>
+
+            <!-- Botón secundario blanco con borde: "Usar PIN", "Cancelar" -->
+            <Style x:Key="BotonSecundario" TargetType="Button">
+                <Setter Property="BackgroundColor" Value="{StaticResource White}"/>
+                <Setter Property="TextColor" Value="{StaticResource Primary}"/>
+                <Setter Property="BorderColor" Value="{StaticResource Primary}"/>
+                <Setter Property="BorderWidth" Value="1"/>
+                <Setter Property="FontAttributes" Value="Bold"/>
+                <Setter Property="CornerRadius" Value="12"/>
+                <Setter Property="HeightRequest" Value="50"/>
+            </Style>
+
+            <!-- Botón de peligro rojo: "Eliminar" -->
+            <Style x:Key="BotonPeligro" TargetType="Button">
+                <Setter Property="BackgroundColor" Value="{StaticResource ColorGasto}"/>
+                <Setter Property="TextColor" Value="{StaticResource White}"/>
+                <Setter Property="FontAttributes" Value="Bold"/>
+                <Setter Property="CornerRadius" Value="12"/>
+                <Setter Property="HeightRequest" Value="50"/>
+            </Style>
+
+            <!-- Botón de acento naranja redondeado: "+ Nuevo" -->
+            <Style x:Key="BotonAcento" TargetType="Button">
+                <Setter Property="BackgroundColor" Value="{StaticResource ColorAcento}"/>
+                <Setter Property="TextColor" Value="{StaticResource White}"/>
+                <Setter Property="FontAttributes" Value="Bold"/>
+                <Setter Property="CornerRadius" Value="20"/>
+                <Setter Property="HeightRequest" Value="40"/>
+                <Setter Property="Padding" Value="16,0"/>
+            </Style>
+
+            <!-- Tarjeta blanca con borde redondeado -->
+            <Style x:Key="Tarjeta" TargetType="Border">
+                <Setter Property="BackgroundColor" Value="{StaticResource ColorTarjeta}"/>
+                <Setter Property="Stroke" Value="{StaticResource ColorBorde}"/>
+                <Setter Property="StrokeThickness" Value="1"/>
+                <Setter Property="StrokeShape" Value="RoundRectangle 12"/>
+                <Setter Property="Padding" Value="14"/>
+            </Style>
+
+            <!-- Tarjeta oscura destacada: "Saldo actual" -->
+            <Style x:Key="TarjetaOscura" TargetType="Border">
+                <Setter Property="BackgroundColor" Value="{StaticResource Primary}"/>
+                <Setter Property="StrokeThickness" Value="0"/>
+                <Setter Property="StrokeShape" Value="RoundRectangle 12"/>
+                <Setter Property="Padding" Value="16"/>
+            </Style>
+
+            <!-- Campo de formulario (contenedor gris claro de Entry/DatePicker) -->
+            <Style x:Key="CampoFormulario" TargetType="Border">
+                <Setter Property="BackgroundColor" Value="{StaticResource ColorCampo}"/>
+                <Setter Property="StrokeThickness" Value="0"/>
+                <Setter Property="StrokeShape" Value="RoundRectangle 8"/>
+                <Setter Property="Padding" Value="10,0"/>
+            </Style>
+
+            <!-- Aviso amarillo: "Se contará en Lujos." -->
+            <Style x:Key="Aviso" TargetType="Border">
+                <Setter Property="BackgroundColor" Value="{StaticResource ColorAvisoFondo}"/>
+                <Setter Property="StrokeThickness" Value="0"/>
+                <Setter Property="StrokeShape" Value="RoundRectangle 6"/>
+                <Setter Property="Padding" Value="10,8"/>
+            </Style>
+
         </ResourceDictionary>
     </Application.Resources>
 </Application>

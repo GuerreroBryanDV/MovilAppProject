@@ -74,6 +74,7 @@
 	  <MauiXaml Update="Views\vRegistrarIngreso.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
+	  <Folder Include="Views\" />
 	</ItemGroup>
 
 </Project>
