@@ -5,12 +5,13 @@
 
     <!-- Note: For Android please see also Platforms\Android\Resources\values\colors.xml -->
 
-    <Color x:Key="Primary">#512BD4</Color>
-    <Color x:Key="PrimaryDark">#ac99ea</Color>
+    <!-- PB04 · Paleta GastoFácil tomada de los mockups (Figuras 1–8) -->
+    <Color x:Key="Primary">#1B2F2B</Color>
+    <Color x:Key="PrimaryDark">#A9C4BB</Color>
     <Color x:Key="PrimaryDarkText">#242424</Color>
-    <Color x:Key="Secondary">#DFD8F7</Color>
-    <Color x:Key="SecondaryDarkText">#9880e5</Color>
-    <Color x:Key="Tertiary">#2B0B98</Color>
+    <Color x:Key="Secondary">#E8E7E1</Color>
+    <Color x:Key="SecondaryDarkText">#6B706C</Color>
+    <Color x:Key="Tertiary">#A6501A</Color>
 
     <Color x:Key="White">White</Color>
     <Color x:Key="Black">Black</Color>
@@ -26,6 +27,28 @@
     <Color x:Key="Gray600">#404040</Color>
     <Color x:Key="Gray900">#212121</Color>
     <Color x:Key="Gray950">#141414</Color>
+
+    <!-- PB04 · Colores propios de GastoFácil (mockups) -->
+    <Color x:Key="ColorFondo">#F3F2EC</Color>            <!-- fondo beige de todas las vistas -->
+    <Color x:Key="ColorTarjeta">#FFFFFF</Color>          <!-- tarjetas y campos -->
+    <Color x:Key="ColorBorde">#E2E1DA</Color>            <!-- borde de tarjetas -->
+    <Color x:Key="ColorCampo">#ECEBE5</Color>            <!-- fondo de Entry / DatePicker -->
+    <Color x:Key="ColorTextoSecundario">#6B706C</Color>  <!-- subtítulos -->
+
+    <Color x:Key="ColorIngreso">#1B7A52</Color>          <!-- montos de ingreso -->
+    <Color x:Key="ColorGasto">#9B1C1C</Color>            <!-- egresos, saldo negativo, Eliminar -->
+    <Color x:Key="ColorAcento">#A6501A</Color>           <!-- botón + Nuevo -->
+
+    <!-- Grupos de la regla 50/40/10 -->
+    <Color x:Key="ColorNecesidades">#1F5A86</Color>
+    <Color x:Key="ColorAhorro">#1B7A52</Color>
+    <Color x:Key="ColorLujos">#A6501A</Color>
+
+    <!-- Etiquetas de estado (vRegla) y avisos -->
+    <Color x:Key="ColorEnMetaFondo">#E3F1E8</Color>
+    <Color x:Key="ColorFueraMetaFondo">#F6DEDE</Color>
+    <Color x:Key="ColorCercaFondo">#FBF0D2</Color>
+    <Color x:Key="ColorAvisoFondo">#F5EED6</Color>
 
     <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource Primary}"/>
     <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource Secondary}"/>
