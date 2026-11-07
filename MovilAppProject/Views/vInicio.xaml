@@ -1,38 +1,152 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--
-    vInicio.xaml
-    Página base creada en PB04 (MAP-4) para la navegación del AppShell.
-    PB05 (MAP-5): se agrega el botón "+ Nuevo" que abre vMovimiento.
-    El saldo y los últimos movimientos se implementan en PB07.
+    vInicio.xaml  (pantalla principal de GastoFácil, según el mockup)
+    PB07: saldo actual, ingresos y egresos del mes, botón "+ Nuevo".
+    PB08: últimos movimientos del mes.
+    Además: resumen de la regla 50/40/10 y tarjeta de recomendación IA.
 -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MovilAppProject.Views.vInicio"
              Title="Inicio">
 
-    <VerticalStackLayout Padding="20" Spacing="15">
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="12">
 
-        <!-- Encabezado: título a la izquierda, "+ Nuevo" a la derecha -->
-        <Grid ColumnSpacing="10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-            </Grid.ColumnDefinitions>
+            <!-- ===== Encabezado: GastoFácil / mes  ·  + Nuevo ===== -->
+            <Grid ColumnSpacing="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition/>
+                    <RowDefinition/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-            <Label Text="GastoFácil"
-                   Style="{StaticResource TituloPagina}"
-                   VerticalOptions="Center"
-                   Grid.Column="0"/>
-            <Button x:Name="btnNuevo"
-                    Text="+ Nuevo"
-                    Clicked="btnNuevo_Clicked"
-                    Style="{StaticResource BotonAcento}"
-                    Grid.Column="1"/>
-        </Grid>
+                <Label Text="GastoFácil"
+                       Style="{StaticResource TituloPagina}"
+                       Grid.Row="0"
+                       Grid.Column="0"/>
+                <Label x:Name="lblMes"
+                       Style="{StaticResource TextoSecundario}"
+                       Grid.Row="1"
+                       Grid.Column="0"/>
+                <Button x:Name="btnNuevo"
+                        Text="+ Nuevo"
+                        Clicked="btnNuevo_Clicked"
+                        Style="{StaticResource BotonAcento}"
+                        VerticalOptions="Center"
+                        Grid.Row="0"
+                        Grid.RowSpan="2"
+                        Grid.Column="1"/>
+            </Grid>
 
-        <Label Text="En construcción"
-               Style="{StaticResource TextoSecundario}"
-               HorizontalOptions="Center"/>
-    </VerticalStackLayout>
+            <!-- ===== Saldo actual (tarjeta oscura) ===== -->
+            <Border Style="{StaticResource TarjetaOscura}">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Saldo actual"
+                           FontSize="14"
+                           TextColor="{StaticResource White}"/>
+                    <Label x:Name="lblSaldo"
+                           Text="$0,00"
+                           Style="{StaticResource MontoGrande}"
+                           TextColor="{StaticResource White}"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ===== Ingresos | Egresos ===== -->
+            <Grid ColumnSpacing="10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+
+                <Border Style="{StaticResource Tarjeta}"
+                        Grid.Column="0">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Ingresos"
+                               Style="{StaticResource TextoSecundario}"/>
+                        <Label x:Name="lblIngresos"
+                               Text="$0,00"
+                               FontSize="20"
+                               Style="{StaticResource MontoIngreso}"/>
+                    </VerticalStackLayout>
+                </Border>
+
+                <Border Style="{StaticResource Tarjeta}"
+                        Grid.Column="1">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="Egresos"
+                               Style="{StaticResource TextoSecundario}"/>
+                        <Label x:Name="lblEgresos"
+                               Text="$0,00"
+                               FontSize="20"
+                               Style="{StaticResource MontoGasto}"/>
+                    </VerticalStackLayout>
+                </Border>
+            </Grid>
+
+            <!-- ===== Regla 50/40/10 (resumen con 3 barras) ===== -->
+            <Border Style="{StaticResource Tarjeta}">
+                <VerticalStackLayout Spacing="8">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Text="Regla 50/40/10"
+                               Style="{StaticResource EtiquetaCampo}"
+                               Grid.Column="0"/>
+                        <Label x:Name="lblEnMeta"
+                               Style="{StaticResource TextoSecundario}"
+                               Grid.Column="1"/>
+                    </Grid>
+
+                    <ProgressBar x:Name="pbNecesidades"
+                                 ProgressColor="{StaticResource ColorNecesidades}"/>
+                    <ProgressBar x:Name="pbAhorro"
+                                 ProgressColor="{StaticResource ColorAhorro}"/>
+                    <ProgressBar x:Name="pbLujos"
+                                 ProgressColor="{StaticResource ColorLujos}"/>
+
+                    <!-- V11: sin ingresos no se calcula la regla -->
+                    <Label x:Name="lblAvisoRegla"
+                           Text="Registra un ingreso para ver tu regla del mes."
+                           Style="{StaticResource TextoSecundario}"
+                           IsVisible="False"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ===== Recomendación IA (se completa en el Sprint 4: PB21/PB22) ===== -->
+            <Border Style="{StaticResource Tarjeta}">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="RECOMENDACIÓN IA"
+                           FontSize="13"
+                           Style="{StaticResource GrupoLujos}"/>
+                    <Label x:Name="lblRecomendacion"
+                           FontSize="13"
+                           TextColor="{StaticResource Primary}"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ===== Últimos movimientos ===== -->
+            <Label Text="Últimos movimientos"
+                   Style="{StaticResource EtiquetaCampo}"
+                   FontSize="15"
+                   Margin="0,6,0,0"/>
+
+            <!-- V10: mes sin movimientos -->
+            <Label x:Name="lblSinMovimientos"
+                   Text="No hay movimientos en este mes."
+                   Style="{StaticResource TextoSecundario}"
+                   IsVisible="False"/>
+
+            <!-- Las filas se agregan desde el código (vInicio.xaml.cs) -->
+            <VerticalStackLayout x:Name="slMovimientos"
+                                 Spacing="10"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
 
 </ContentPage>
