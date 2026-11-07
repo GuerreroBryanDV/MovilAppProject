@@ -2,7 +2,8 @@
 <!--
     vInicio.xaml
     Página base creada en PB04 (MAP-4) para la navegación del AppShell.
-    Su contenido se implementa en: PB07 (vInicio / saldo actual)
+    PB05 (MAP-5): se agrega el botón "+ Nuevo" que abre vMovimiento.
+    El saldo y los últimos movimientos se implementan en PB07.
 -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
@@ -10,8 +11,25 @@
              Title="Inicio">
 
     <VerticalStackLayout Padding="20" Spacing="15">
-        <Label Text="Inicio"
-               Style="{StaticResource TituloPagina}"/>
+
+        <!-- Encabezado: título a la izquierda, "+ Nuevo" a la derecha -->
+        <Grid ColumnSpacing="10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <Label Text="GastoFácil"
+                   Style="{StaticResource TituloPagina}"
+                   VerticalOptions="Center"
+                   Grid.Column="0"/>
+            <Button x:Name="btnNuevo"
+                    Text="+ Nuevo"
+                    Clicked="btnNuevo_Clicked"
+                    Style="{StaticResource BotonAcento}"
+                    Grid.Column="1"/>
+        </Grid>
+
         <Label Text="En construcción"
                Style="{StaticResource TextoSecundario}"
                HorizontalOptions="Center"/>
