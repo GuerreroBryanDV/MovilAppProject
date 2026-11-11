@@ -9,6 +9,7 @@
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:MovilAppProject"
+             xmlns:views="clr-namespace:MovilAppProject.Views"
              x:Class="MovilAppProject.App">
     <Application.Resources>
         <ResourceDictionary>
@@ -25,6 +26,16 @@
             <Style TargetType="ContentPage" ApplyToDerivedTypes="True">
                 <Setter Property="BackgroundColor" Value="{StaticResource ColorFondo}"/>
             </Style>
+
+            <!-- Plantilla de página con la barra de navegación inferior.
+                 Una página la usa con:  ControlTemplate="{StaticResource PlantillaConBarra}"
+                 (vInicio, vRegla, vEstadisticas y vAjustes; vMovimiento no la usa). -->
+            <ControlTemplate x:Key="PlantillaConBarra">
+                <Grid RowDefinitions="*,Auto">
+                    <ContentPresenter Grid.Row="0"/>
+                    <views:BarraInferior Grid.Row="1"/>
+                </Grid>
+            </ControlTemplate>
 
             <!-- ===== ESTILOS GLOBALES EXPLÍCITOS (con x:Key) ===== -->
 

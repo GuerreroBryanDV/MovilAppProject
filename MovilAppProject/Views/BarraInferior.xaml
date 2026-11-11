@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    BarraInferior.xaml
+    Barra de navegación inferior de GastoFácil (Inicio, Regla, Estadísticas, Ajustes).
+    Reemplaza la barra de pestañas nativa del Shell, que en Windows aparece arriba.
+    Las páginas la usan con la plantilla "PlantillaConBarra" (App.xaml):
+        ControlTemplate="{StaticResource PlantillaConBarra}"
+    Íconos: trazos vectoriales (Material Design Icons, licencia Apache 2.0).
+-->
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MovilAppProject.Views.BarraInferior">
+
+    <VerticalStackLayout Spacing="0"
+                         BackgroundColor="{StaticResource ColorTarjeta}">
+
+        <!-- Línea fina que separa la barra del contenido -->
+        <BoxView HeightRequest="1"
+                 Color="{StaticResource ColorBorde}"/>
+
+        <Grid ColumnDefinitions="*,*,*,*"
+              Padding="8,8,8,10">
+
+            <!-- Inicio -->
+            <VerticalStackLayout Grid.Column="0"
+                                 Spacing="2"
+                                 HorizontalOptions="Center"
+                                 SemanticProperties.Description="Ir a Inicio">
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="Item_Tapped" CommandParameter="vInicio"/>
+                </VerticalStackLayout.GestureRecognizers>
+                <Border x:Name="pillInicio"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 16"
+                        BackgroundColor="Transparent"
+                        WidthRequest="60" HeightRequest="32">
+                    <Path x:Name="iconoInicio"
+                          Data="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"
+                          Aspect="Uniform"
+                          WidthRequest="22" HeightRequest="22"
+                          HorizontalOptions="Center" VerticalOptions="Center"/>
+                </Border>
+                <Label x:Name="lblInicio"
+                       Text="Inicio"
+                       FontSize="11"
+                       HorizontalTextAlignment="Center"/>
+            </VerticalStackLayout>
+
+            <!-- Regla 50/40/10 -->
+            <VerticalStackLayout Grid.Column="1"
+                                 Spacing="2"
+                                 HorizontalOptions="Center"
+                                 SemanticProperties.Description="Ir a Regla">
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="Item_Tapped" CommandParameter="vRegla"/>
+                </VerticalStackLayout.GestureRecognizers>
+                <Border x:Name="pillRegla"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 16"
+                        BackgroundColor="Transparent"
+                        WidthRequest="60" HeightRequest="32">
+                    <Path x:Name="iconoRegla"
+                          Data="M11 2v20c-5.07-.5-9-4.79-9-10s3.93-9.5 9-10zm2.03 0v8.99H22c-.47-4.74-4.24-8.52-8.97-8.99zm0 11.01V22c4.74-.47 8.5-4.25 8.97-8.99h-8.97z"
+                          Aspect="Uniform"
+                          WidthRequest="22" HeightRequest="22"
+                          HorizontalOptions="Center" VerticalOptions="Center"/>
+                </Border>
+                <Label x:Name="lblRegla"
+                       Text="Regla"
+                       FontSize="11"
+                       HorizontalTextAlignment="Center"/>
+            </VerticalStackLayout>
+
+            <!-- Estadísticas -->
+            <VerticalStackLayout Grid.Column="2"
+                                 Spacing="2"
+                                 HorizontalOptions="Center"
+                                 SemanticProperties.Description="Ir a Estadísticas">
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="Item_Tapped" CommandParameter="vEstadisticas"/>
+                </VerticalStackLayout.GestureRecognizers>
+                <Border x:Name="pillEstadisticas"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 16"
+                        BackgroundColor="Transparent"
+                        WidthRequest="60" HeightRequest="32">
+                    <Path x:Name="iconoEstadisticas"
+                          Data="M5 9.2h3V19H5zM10.6 5h2.8v14h-2.8zm5.6 8H19v6h-2.8z"
+                          Aspect="Uniform"
+                          WidthRequest="22" HeightRequest="22"
+                          HorizontalOptions="Center" VerticalOptions="Center"/>
+                </Border>
+                <Label x:Name="lblEstadisticas"
+                       Text="Estadísticas"
+                       FontSize="11"
+                       HorizontalTextAlignment="Center"/>
+            </VerticalStackLayout>
+
+            <!-- Ajustes -->
+            <VerticalStackLayout Grid.Column="3"
+                                 Spacing="2"
+                                 HorizontalOptions="Center"
+                                 SemanticProperties.Description="Ir a Ajustes">
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="Item_Tapped" CommandParameter="vAjustes"/>
+                </VerticalStackLayout.GestureRecognizers>
+                <Border x:Name="pillAjustes"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 16"
+                        BackgroundColor="Transparent"
+                        WidthRequest="60" HeightRequest="32">
+                    <Path x:Name="iconoAjustes"
+                          Data="M3 17v2h6v-2H3zM3 5v2h10V5H3zm10 16v-2h8v-2h-8v-2h-2v6h2zM7 9v2H3v2h4v2h2V9H7zm14 4v-2H11v2h10zm-6-4h2V7h4V5h-4V3h-2v6z"
+                          Aspect="Uniform"
+                          WidthRequest="22" HeightRequest="22"
+                          HorizontalOptions="Center" VerticalOptions="Center"/>
+                </Border>
+                <Label x:Name="lblAjustes"
+                       Text="Ajustes"
+                       FontSize="11"
+                       HorizontalTextAlignment="Center"/>
+            </VerticalStackLayout>
+
+        </Grid>
+    </VerticalStackLayout>
+
+</ContentView>

@@ -31,6 +31,8 @@ namespace MovilAppProject
         }
 
         // Crea la ventana principal: AppShell con las pestañas de navegación.
+        // Se arranca en el Shell (PB04) y no en una sola vista para que vInicio sea la
+        // pantalla principal. Entre pantallas se sigue usando Navigation.PushAsync/PopAsync.
         protected override Window CreateWindow(IActivationState? activationState)
         {
             return new Window(new AppShell());
