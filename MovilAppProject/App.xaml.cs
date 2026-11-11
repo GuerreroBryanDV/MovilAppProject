@@ -1,12 +1,17 @@
 ﻿using System.Globalization;
+using MovilAppProject.Repositories;
 
 namespace MovilAppProject
 {
     // Clase principal de la aplicación: es lo primero que se ejecuta.
     public partial class App : Application
     {
-        public App()
+        // Repositorio de SQLite disponible para todas las vistas (PB03 / PB06)
+        public static MovimientoRepository MovimientoRepo { get; private set; } = null!;
+
+        public App(MovimientoRepository repo)
         {
+            MovimientoRepo = repo;
             // PB04 · RNF09: textos en español, moneda USD y fechas dd/MM/aaaa.
             // La cultura es-EC (Ecuador) usa dólar ($), coma decimal (25,50)
             // y punto de miles ($99.999,99), igual que los mensajes del Backlog.
