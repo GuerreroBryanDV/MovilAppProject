@@ -2,7 +2,7 @@ using SQLite;
 
 namespace MovilAppProject.Models
 {
-    // Categoría predefinida (Comida, Vivienda, Ropa...). La categoría "Ingreso" no tiene grupo.
+    // Categoría predefinida (Comida, Vivienda, Restaurantes...). La categoría "Ingreso" no tiene grupo.
     [Table("categoria")]
     public class Categoria
     {
