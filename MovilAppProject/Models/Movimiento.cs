@@ -59,6 +59,10 @@ namespace MovilAppProject.Models
         [Ignore]
         public string NombreCategoria { get; set; } = string.Empty;
 
+        // Grupo de la regla al que pertenece la categoría (vacío en un ingreso)
+        [Ignore]
+        public string NombreGrupo { get; set; } = string.Empty;
+
         [Ignore]
         public decimal MontoConSigno => Tipo == TipoMovimiento.Gasto ? -Monto : Monto;
     }

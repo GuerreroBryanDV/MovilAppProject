@@ -12,10 +12,12 @@ namespace MovilAppProject.Repositories
         // Mensaje del último resultado (igual que en el ejemplo de la Semana 5)
         public string StatusMessage { get; set; } = string.Empty;
 
-        // Constructor: recibe la ruta de la base desde MauiProgram.cs
+        // Constructor: recibe la ruta de la base desde MauiProgram.cs.
+        // La base y las tablas se crean al iniciar la app (PB03).
         public MovimientoRepository(string path)
         {
             _dbPath = path;
+            Init();
         }
 
         // Conexión a la base de datos, creación de tablas y datos iniciales
@@ -49,24 +51,22 @@ namespace MovilAppProject.Repositories
             {
                 conn.InsertAll(new List<Categoria>
                 {
+                    // Categorías predefinidas según el documento de requisitos (sección 2.3)
                     // Necesidades
                     new() { Nombre = "Comida", GrupoId = GrupoPresupuesto.NecesidadesId },
                     new() { Nombre = "Vivienda", GrupoId = GrupoPresupuesto.NecesidadesId },
-                    new() { Nombre = "Servicios básicos", GrupoId = GrupoPresupuesto.NecesidadesId },
-                    new() { Nombre = "Transporte", GrupoId = GrupoPresupuesto.NecesidadesId },
                     new() { Nombre = "Salud", GrupoId = GrupoPresupuesto.NecesidadesId },
-                    new() { Nombre = "Educación", GrupoId = GrupoPresupuesto.NecesidadesId },
+                    new() { Nombre = "Transporte", GrupoId = GrupoPresupuesto.NecesidadesId },
+                    new() { Nombre = "Servicios", GrupoId = GrupoPresupuesto.NecesidadesId },
                     // Ahorro e inversión
-                    new() { Nombre = "Ahorro", GrupoId = GrupoPresupuesto.AhorroInversionId },
-                    new() { Nombre = "Inversión", GrupoId = GrupoPresupuesto.AhorroInversionId },
                     new() { Nombre = "Fondo de emergencia", GrupoId = GrupoPresupuesto.AhorroInversionId },
-                    new() { Nombre = "Pago de deudas", GrupoId = GrupoPresupuesto.AhorroInversionId },
+                    new() { Nombre = "Educación", GrupoId = GrupoPresupuesto.AhorroInversionId },
+                    new() { Nombre = "Invertir", GrupoId = GrupoPresupuesto.AhorroInversionId },
                     // Lujos
                     new() { Nombre = "Restaurantes", GrupoId = GrupoPresupuesto.LujosId },
                     new() { Nombre = "Entretenimiento", GrupoId = GrupoPresupuesto.LujosId },
-                    new() { Nombre = "Ropa", GrupoId = GrupoPresupuesto.LujosId },
-                    new() { Nombre = "Suscripciones", GrupoId = GrupoPresupuesto.LujosId },
-                    new() { Nombre = "Viajes", GrupoId = GrupoPresupuesto.LujosId },
+                    new() { Nombre = "Vacaciones", GrupoId = GrupoPresupuesto.LujosId },
+                    new() { Nombre = "Electrónicos", GrupoId = GrupoPresupuesto.LujosId },
                     // Sin grupo: se usa en los ingresos (V05)
                     new() { Nombre = Categoria.NombreIngreso, GrupoId = null }
                 });
@@ -152,12 +152,23 @@ namespace MovilAppProject.Repositories
                     .ThenByDescending(m => m.Id)
                     .ToList();
 
-                Dictionary<int, string> categorias = _conn.Table<Categoria>()
+                Dictionary<int, Categoria> categorias = _conn.Table<Categoria>()
                     .ToList()
-                    .ToDictionary(c => c.Id, c => c.Nombre);
+                    .ToDictionary(c => c.Id);
+                Dictionary<int, string> grupos = _conn.Table<GrupoPresupuesto>()
+                    .ToList()
+                    .ToDictionary(g => g.Id, g => g.Nombre);
 
                 foreach (Movimiento m in movimientos)
-                    m.NombreCategoria = categorias.TryGetValue(m.CategoriaId, out string? nombre) ? nombre : "";
+                {
+                    if (!categorias.TryGetValue(m.CategoriaId, out Categoria? categoria))
+                        continue;
+
+                    m.NombreCategoria = categoria.Nombre;
+                    // La categoría "Ingreso" no tiene grupo: NombreGrupo queda vacío
+                    if (categoria.GrupoId is int grupoId && grupos.TryGetValue(grupoId, out string? nombreGrupo))
+                        m.NombreGrupo = nombreGrupo;
+                }
 
                 return movimientos;
             }
