@@ -1,9 +1,9 @@
+using MovilAppProject.Models;
+
 namespace MovilAppProject.Views;
 
 // Pantalla principal de GastoFácil (según el mockup).
-// Lee los movimientos del archivo que guarda vMovimiento.
-// PENDIENTE BDD (Bryan): al integrar, reemplazar LeerMovimientos()
-// por la consulta a la base de datos.
+// PB07: lee los movimientos del mes desde SQLite (App.MovimientoRepo).
 public partial class vInicio : ContentPage
 {
     // Metas de la regla 50/40/10 (en %)
@@ -51,8 +51,9 @@ public partial class vInicio : ContentPage
             string mes = hoy.ToString("MMMM yyyy");
             lblMes.Text = mes.Substring(0, 1).ToUpper() + mes.Substring(1);
 
-            // Movimientos del mes actual
-            List<string[]> movimientos = LeerMovimientos(hoy.Month, hoy.Year);
+            // Movimientos del mes actual, del más reciente al más antiguo.
+            // Se consulta una sola vez y de aquí salen todos los totales.
+            List<Movimiento> movimientos = App.MovimientoRepo.ListarPorMes(hoy.Year, hoy.Month);
 
             // Totales
             decimal ingresos = 0;
@@ -61,31 +62,27 @@ public partial class vInicio : ContentPage
             decimal ahorro = 0;
             decimal lujos = 0;
 
-            foreach (string[] m in movimientos)
+            foreach (Movimiento m in movimientos)
             {
-                string tipo = m[0];
-                decimal monto = decimal.Parse(m[1]);
-                string grupo = m[3];
-
-                if (tipo == "Ingreso")
+                if (m.Tipo == TipoMovimiento.Ingreso)
                 {
-                    ingresos = ingresos + monto;
+                    ingresos = ingresos + m.Monto;
                 }
                 else
                 {
-                    egresos = egresos + monto;
+                    egresos = egresos + m.Monto;
 
-                    if (grupo == "Necesidades")
+                    if (m.NombreGrupo == "Necesidades")
                     {
-                        necesidades = necesidades + monto;
+                        necesidades = necesidades + m.Monto;
                     }
-                    else if (grupo == "Ahorro e inversión")
+                    else if (m.NombreGrupo == "Ahorro e inversión")
                     {
-                        ahorro = ahorro + monto;
+                        ahorro = ahorro + m.Monto;
                     }
-                    else if (grupo == "Lujos")
+                    else if (m.NombreGrupo == "Lujos")
                     {
-                        lujos = lujos + monto;
+                        lujos = lujos + m.Monto;
                     }
                 }
             }
@@ -185,7 +182,7 @@ public partial class vInicio : ContentPage
     }
 
     // ===== Últimos movimientos (PB08) =====
-    private void MostrarMovimientos(List<string[]> movimientos)
+    private void MostrarMovimientos(List<Movimiento> movimientos)
     {
         slMovimientos.Children.Clear();
 
@@ -198,14 +195,9 @@ public partial class vInicio : ContentPage
 
         lblSinMovimientos.IsVisible = false;
 
-        // Del más reciente al más antiguo:
-        // el archivo guarda en orden de registro, se recorre desde el final
-        // y se ordena por fecha.
-        movimientos.Reverse();
-        movimientos.Sort((a, b) => Convert.ToDateTime(b[4]).CompareTo(Convert.ToDateTime(a[4])));
-
+        // El repositorio ya los entrega del más reciente al más antiguo
         int cantidad = 0;
-        foreach (string[] m in movimientos)
+        foreach (Movimiento m in movimientos)
         {
             if (cantidad == maximoMovimientos)
             {
@@ -220,34 +212,26 @@ public partial class vInicio : ContentPage
     // Crea una fila como en el mockup:
     //   Almuerzo                    -$4,50
     //   Comida · Necesidades · 07/11/2026
-    private Grid CrearFila(string[] m)
+    private Grid CrearFila(Movimiento m)
     {
-        string tipo = m[0];
-        decimal monto = decimal.Parse(m[1]);
-        string categoria = m[2];
-        string grupo = m[3];
-        string fecha = m[4];
-        string nota = m[5];
+        bool esIngreso = m.Tipo == TipoMovimiento.Ingreso;
+        string fecha = m.Fecha.ToString("dd/MM/yyyy");
 
         // Si no hay nota se muestra la categoría como título
-        string titulo = nota;
-        if (string.IsNullOrEmpty(titulo))
-        {
-            titulo = categoria;
-        }
+        string titulo = m.Nota ?? m.NombreCategoria;
 
-        string detalle = categoria + " · " + grupo + " · " + fecha;
-        if (tipo == "Ingreso")
+        string detalle = m.NombreCategoria + " · " + m.NombreGrupo + " · " + fecha;
+        if (esIngreso)
         {
             detalle = "Ingreso · " + fecha;
         }
 
         // Gastos en negativo, ingresos en positivo
-        string textoMonto = "-" + FormatoMonto(monto);
+        string textoMonto = "-" + FormatoMonto(m.Monto);
         Color colorMonto = (Color)Application.Current!.Resources["Primary"];
-        if (tipo == "Ingreso")
+        if (esIngreso)
         {
-            textoMonto = "+" + FormatoMonto(monto);
+            textoMonto = "+" + FormatoMonto(m.Monto);
             colorMonto = (Color)Application.Current.Resources["ColorIngreso"];
         }
 
@@ -288,46 +272,6 @@ public partial class vInicio : ContentPage
         return fila;
     }
 
-    // ===== Lectura del archivo =====
-    // Cada línea: Tipo;Monto;Categoria;Grupo;Fecha;Nota  (la escribe vMovimiento)
-    // Devuelve solo los movimientos del mes y año indicados.
-    private List<string[]> LeerMovimientos(int mes, int anio)
-    {
-        List<string[]> lista = new List<string[]>();
-
-        string ruta = Path.Combine(FileSystem.AppDataDirectory, "movimientos.txt");
-
-        // Si todavía no se ha registrado nada, el archivo no existe
-        if (!File.Exists(ruta))
-        {
-            return lista;
-        }
-
-        string[] lineas = File.ReadAllLines(ruta);
-
-        foreach (string linea in lineas)
-        {
-            if (string.IsNullOrWhiteSpace(linea))
-            {
-                continue;
-            }
-
-            string[] datos = linea.Split(';');
-            if (datos.Length < 6)
-            {
-                continue;
-            }
-
-            DateTime fecha = Convert.ToDateTime(datos[4]);
-            if (fecha.Month == mes && fecha.Year == anio)
-            {
-                lista.Add(datos);
-            }
-        }
-
-        return lista;
-    }
-
     // Formato de dinero: $1.000,00 (USD, 2 decimales, cultura es-EC)
     private string FormatoMonto(decimal monto)
     {
@@ -336,6 +280,7 @@ public partial class vInicio : ContentPage
             monto = -monto;
             return "-$" + monto.ToString("N2");
         }
+
         return "$" + monto.ToString("N2");
     }
 }
