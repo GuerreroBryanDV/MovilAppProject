@@ -33,7 +33,7 @@ namespace MovilAppProject
         // Crea la ventana principal: AppShell con las pestañas de navegación.
         protected override Window CreateWindow(IActivationState? activationState)
         {
-            return new Window(new NavigationPage(new Views.vRegistrarIngreso()));
+            return new Window(new AppShell());
         }
     }
 }

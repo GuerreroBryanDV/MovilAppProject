@@ -221,6 +221,23 @@ namespace MovilAppProject.Repositories
             return new List<Categoria>();
         }
 
+        // Grupos de la regla (Necesidades, Ahorro e inversión, Lujos) en su orden
+        public List<GrupoPresupuesto> ObtenerGrupos()
+        {
+            try
+            {
+                Init();
+                return _conn!.Table<GrupoPresupuesto>()
+                    .OrderBy(g => g.Orden)
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = "Error: " + ex.Message;
+            }
+            return new List<GrupoPresupuesto>();
+        }
+
         // Categoría "Ingreso" que se guarda en todos los ingresos (V05)
         public Categoria? ObtenerCategoriaIngreso()
         {

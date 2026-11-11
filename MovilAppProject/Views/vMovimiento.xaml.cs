@@ -1,6 +1,9 @@
+using System.Globalization;
+using MovilAppProject.Models;
+
 namespace MovilAppProject.Views;
 
-// PB05 · MAP-5 · HU1 Registrar gasto
+// PB05 · MAP-5 · HU1 Registrar gasto  /  PB07 · guardado en SQLite
 // Validaciones V01 a V08 de la hoja "Validaciones" del Product Backlog.
 public partial class vMovimiento : ContentPage
 {
@@ -10,24 +13,25 @@ public partial class vMovimiento : ContentPage
     // Límites del monto (V04)
     const decimal montoMaximo = 99999.99m;
 
+    // Categorías de gasto guardadas en SQLite, en el mismo orden que el Picker
+    private readonly List<Categoria> _categorias;
+
+    // Nombre del grupo de cada categoría, para mostrar "Comida - Necesidades"
+    private readonly Dictionary<int, string> _grupos;
+
     public vMovimiento()
     {
         InitializeComponent();
 
-        // Categorías predefinidas: "Categoría - Grupo" (igual que el mockup)
-        // Necesidades
-        pkCategoria.Items.Add("Comida - Necesidades");
-        pkCategoria.Items.Add("Vivienda - Necesidades");
-        pkCategoria.Items.Add("Salud - Necesidades");
-        pkCategoria.Items.Add("Transporte - Necesidades");
-        // Ahorro e inversión
-        pkCategoria.Items.Add("Fondo de emergencia - Ahorro e inversión");
-        pkCategoria.Items.Add("Educación - Ahorro e inversión");
-        pkCategoria.Items.Add("Invertir - Ahorro e inversión");
-        // Lujos
-        pkCategoria.Items.Add("Restaurantes - Lujos");
-        pkCategoria.Items.Add("Entretenimiento - Lujos");
-        pkCategoria.Items.Add("Vacaciones - Lujos");
+        // Las categorías y sus grupos vienen de la base de datos (PB03)
+        _categorias = App.MovimientoRepo.ObtenerCategoriasGasto();
+        _grupos = App.MovimientoRepo.ObtenerGrupos().ToDictionary(g => g.Id, g => g.Nombre);
+
+        // Picker: "Categoría - Grupo" (igual que el mockup)
+        foreach (Categoria categoria in _categorias)
+        {
+            pkCategoria.Items.Add(categoria.Nombre + " - " + NombreGrupo(categoria));
+        }
 
         // V06: no se puede elegir una fecha posterior a hoy
         dpFecha.MaximumDate = DateTime.Today;
@@ -44,7 +48,7 @@ public partial class vMovimiento : ContentPage
         btnGuardar.Text = "Guardar gasto";
     }
 
-    // ===== Tipo: Ingreso (la regla de guardado del ingreso es de PB06) =====
+    // ===== Tipo: Ingreso =====
     private void btnIngreso_Clicked(object sender, EventArgs e)
     {
         tipo = "Ingreso";
@@ -77,7 +81,7 @@ public partial class vMovimiento : ContentPage
             return;
         }
 
-        string grupo = ObtenerGrupo(pkCategoria.SelectedItem.ToString()!);
+        string grupo = NombreGrupo(_categorias[pkCategoria.SelectedIndex]);
         lblAviso.Text = "Se contará en " + grupo + ".";
         brdAviso.IsVisible = true;
     }
@@ -106,8 +110,8 @@ public partial class vMovimiento : ContentPage
                 return;
             }
 
-            // Se usa la coma como separador decimal (cultura es-EC)
-            decimal monto = decimal.Parse(montoTexto.Replace(".", ","));
+            // Acepta coma o punto como separador decimal (25,50 o 25.50)
+            decimal monto = decimal.Parse(montoTexto.Replace(',', '.'), CultureInfo.InvariantCulture);
 
             // V04: mayor a 0 y máximo 99.999,99
             if (monto <= 0 || monto > montoMaximo)
@@ -117,9 +121,9 @@ public partial class vMovimiento : ContentPage
                 return;
             }
 
-            // V05: categoría obligatoria (solo para Gasto)
-            string categoria = "Ingreso";
-            string grupo = "Ingreso";
+            // V05: categoría obligatoria (solo para Gasto).
+            // En un ingreso se guarda la categoría "Ingreso".
+            int categoriaId;
             if (tipo == "Gasto")
             {
                 if (pkCategoria.SelectedIndex == -1)
@@ -128,9 +132,18 @@ public partial class vMovimiento : ContentPage
                     return;
                 }
 
-                string seleccion = pkCategoria.SelectedItem.ToString()!;
-                categoria = ObtenerCategoria(seleccion);
-                grupo = ObtenerGrupo(seleccion);
+                categoriaId = _categorias[pkCategoria.SelectedIndex].Id;
+            }
+            else
+            {
+                Categoria? categoriaIngreso = App.MovimientoRepo.ObtenerCategoriaIngreso();
+                if (categoriaIngreso is null)
+                {
+                    await DisplayAlertAsync("Error", App.MovimientoRepo.StatusMessage, "Cerrar");
+                    return;
+                }
+
+                categoriaId = categoriaIngreso.Id;
             }
 
             // V06: la fecha no puede ser posterior a hoy
@@ -149,11 +162,24 @@ public partial class vMovimiento : ContentPage
             }
 
             // V08: solo se llega aquí si todo es válido
-            GuardarMovimiento(tipo, monto, categoria, grupo, fecha, nota);
+            Movimiento movimiento = new()
+            {
+                Tipo = tipo == "Gasto" ? TipoMovimiento.Gasto : TipoMovimiento.Ingreso,
+                Monto = monto,
+                CategoriaId = categoriaId,
+                Fecha = fecha,
+                Nota = nota
+            };
+
+            if (!App.MovimientoRepo.AgregarMovimiento(movimiento))
+            {
+                await DisplayAlertAsync("Error", App.MovimientoRepo.StatusMessage, "Cerrar");
+                return;
+            }
 
             await DisplayAlertAsync("Éxito", "Movimiento guardado", "Cerrar");
 
-            // Regresa a vInicio
+            // Regresa a vInicio, que recarga el saldo en OnAppearing
             await Navigation.PopAsync();
         }
         catch (Exception ex)
@@ -162,23 +188,15 @@ public partial class vMovimiento : ContentPage
         }
     }
 
-    // Guarda el movimiento en el teléfono (archivo de texto).
-    // PENDIENTE PB03: al integrar con la rama de María, reemplazar este
-    // contenido por la llamada al repositorio SQLite (Repositories).
-    private void GuardarMovimiento(string tipo, decimal monto, string categoria,
-                                   string grupo, DateTime fecha, string nota)
+    // Nombre del grupo de una categoría ("Necesidades", "Lujos"...)
+    private string NombreGrupo(Categoria categoria)
     {
-        string ruta = Path.Combine(FileSystem.AppDataDirectory, "movimientos.txt");
+        if (categoria.GrupoId is int grupoId && _grupos.TryGetValue(grupoId, out string? nombre))
+        {
+            return nombre;
+        }
 
-        // Una línea por movimiento: Tipo;Monto;Categoria;Grupo;Fecha;Nota
-        string linea = tipo + ";" +
-                       monto.ToString("0.00") + ";" +
-                       categoria + ";" +
-                       grupo + ";" +
-                       fecha.ToString("dd/MM/yyyy") + ";" +
-                       nota.Replace(";", ",") + "\n";
-
-        File.AppendAllText(ruta, linea);
+        return "";
     }
 
     // V03: true si el texto tiene solo números y como máximo 2 decimales.
@@ -221,20 +239,7 @@ public partial class vMovimiento : ContentPage
                 return false;
             }
         }
+
         return true;
-    }
-
-    // "Comida - Necesidades"  →  "Comida"
-    private string ObtenerCategoria(string seleccion)
-    {
-        int posicion = seleccion.IndexOf(" - ");
-        return seleccion.Substring(0, posicion);
-    }
-
-    // "Comida - Necesidades"  →  "Necesidades"
-    private string ObtenerGrupo(string seleccion)
-    {
-        int posicion = seleccion.IndexOf(" - ");
-        return seleccion.Substring(posicion + 3);
     }
 }
