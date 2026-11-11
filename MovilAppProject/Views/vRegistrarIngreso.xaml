@@ -1,0 +1,202 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    vRegistrarIngreso.xaml  (PB06 · HU2 Registrar ingreso)
+    Registra un ingreso (o un gasto) y lo guarda en SQLite.
+    Al elegir Tipo = Ingreso se oculta la categoría (V01, V05).
+-->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:models="clr-namespace:MovilAppProject.Models"
+             x:Class="MovilAppProject.Views.vRegistrarIngreso"
+             Title="Registrar ingreso">
+    <ScrollView>
+        <VerticalStackLayout Padding="20"
+                             Spacing="15">
+
+            <!-- SALDO Y RESUMEN DEL MES (HU2 - criterio 2) -->
+            <Border Padding="15"
+                    StrokeThickness="0"
+                    BackgroundColor="#1E3A5F"
+                    StrokeShape="RoundRectangle 12">
+                <VerticalStackLayout Spacing="5">
+                    <Label Text="Saldo del mes"
+                           TextColor="#CFD8E3"
+                           FontSize="14"/>
+                    <Label x:Name="lblSaldo"
+                           Text="$ 0,00"
+                           TextColor="White"
+                           FontSize="28"
+                           FontAttributes="Bold"/>
+                    <Label x:Name="lblIngresosMes"
+                           Text="Ingresos del mes: $ 0,00"
+                           TextColor="#A5D6A7"
+                           FontSize="14"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <Label x:Name="lblTitulo"
+                   Text="REGISTRAR INGRESO"
+                   TextColor="Blue"
+                   FontSize="22"
+                   HorizontalOptions="Center"/>
+
+            <!-- GRID 5 FILAS x 2 COLUMNAS -->
+            <Grid RowSpacing="10"
+                  ColumnSpacing="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition/>
+                    <ColumnDefinition/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Tipo (V01) -->
+                <Label Text="Tipo"
+                       VerticalOptions="Center"
+                       Grid.Row="0"
+                       Grid.Column="0"/>
+
+                <Picker x:Name="pkTipo"
+                        Title="Seleccione el tipo"
+                        SelectedIndexChanged="pkTipo_SelectedIndexChanged"
+                        Grid.Row="0"
+                        Grid.Column="1">
+                    <Picker.Items>
+                        <x:String>Gasto</x:String>
+                        <x:String>Ingreso</x:String>
+                    </Picker.Items>
+                </Picker>
+
+                <!-- Categoría: se carga desde SQLite y se oculta cuando el tipo es Ingreso (V05) -->
+                <Label x:Name="lblCategoria"
+                       Text="Categoría"
+                       VerticalOptions="Center"
+                       Grid.Row="1"
+                       Grid.Column="0"/>
+
+                <Picker x:Name="pkCategoria"
+                        Title="Seleccione una categoría"
+                        Grid.Row="1"
+                        Grid.Column="1"/>
+
+                <!-- Monto (V02, V03, V04) -->
+                <Label Text="Monto (USD)"
+                       VerticalOptions="Center"
+                       Grid.Row="2"
+                       Grid.Column="0"/>
+
+                <Entry x:Name="txtMonto"
+                       Placeholder="0,00"
+                       Keyboard="Numeric"
+                       Grid.Row="2"
+                       Grid.Column="1"/>
+
+                <!-- Fecha (V06) -->
+                <Label Text="Fecha"
+                       VerticalOptions="Center"
+                       Grid.Row="3"
+                       Grid.Column="0"/>
+
+                <DatePicker x:Name="dpFecha"
+                            Format="dd/MM/yyyy"
+                            Grid.Row="3"
+                            Grid.Column="1"/>
+
+                <!-- Nota opcional (V07) -->
+                <Label Text="Nota (opcional)"
+                       VerticalOptions="Center"
+                       Grid.Row="4"
+                       Grid.Column="0"/>
+
+                <Entry x:Name="txtNota"
+                       Placeholder="Ej.: pago de beca"
+                       MaxLength="100"
+                       Grid.Row="4"
+                       Grid.Column="1"/>
+            </Grid>
+
+            <Button x:Name="btnGuardar"
+                    Text="Guardar"
+                    BackgroundColor="#2E7D32"
+                    Clicked="btnGuardar_Clicked"/>
+
+            <Button x:Name="btnLimpiar"
+                    Text="Limpiar"
+                    BackgroundColor="Gray"
+                    Clicked="btnLimpiar_Clicked"/>
+
+            <!-- LISTA DE MOVIMIENTOS DEL MES (Select en SQLite) -->
+            <Button x:Name="btnListar"
+                    Text="Ver movimientos del mes"
+                    BackgroundColor="#1E3A5F"
+                    Clicked="btnListar_Clicked"/>
+
+            <!-- V10: mensaje cuando el mes no tiene movimientos -->
+            <Label x:Name="lblSinMovimientos"
+                   Text="No hay movimientos en este mes."
+                   TextColor="Gray"
+                   HorizontalOptions="Center"
+                   IsVisible="False"/>
+
+            <CollectionView x:Name="listaMovimientos"
+                            IsVisible="False">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:Movimiento">
+                        <Border Padding="12"
+                                Margin="0,0,0,8"
+                                BackgroundColor="White"
+                                Stroke="#E0E0E0"
+                                StrokeShape="RoundRectangle 10">
+                            <Grid ColumnDefinitions="*,Auto"
+                                  RowDefinitions="Auto,Auto">
+
+                                <!-- Categoría -->
+                                <Label Text="{Binding NombreCategoria}"
+                                       FontAttributes="Bold"
+                                       Grid.Row="0"
+                                       Grid.Column="0"/>
+
+                                <!-- Fecha dd/MM/aaaa y nota -->
+                                <Label Grid.Row="1"
+                                       Grid.Column="0"
+                                       FontSize="12"
+                                       TextColor="Gray">
+                                    <Label.FormattedText>
+                                        <FormattedString>
+                                            <Span Text="{Binding Fecha, StringFormat='{0:dd/MM/yyyy}'}"/>
+                                            <Span Text="  "/>
+                                            <Span Text="{Binding Nota}"/>
+                                        </FormattedString>
+                                    </Label.FormattedText>
+                                </Label>
+
+                                <!-- Monto: ingresos en verde, gastos en negativo y en rojo -->
+                                <Label Text="{Binding MontoConSigno, StringFormat='$ {0:N2}'}"
+                                       FontAttributes="Bold"
+                                       TextColor="#2E7D32"
+                                       VerticalOptions="Center"
+                                       Grid.Row="0"
+                                       Grid.RowSpan="2"
+                                       Grid.Column="1">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label"
+                                                     Binding="{Binding Tipo}"
+                                                     Value="{x:Static models:TipoMovimiento.Gasto}">
+                                            <Setter Property="TextColor" Value="#C62828"/>
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
