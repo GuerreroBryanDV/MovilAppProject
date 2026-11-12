@@ -1,8 +1,10 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <!--
     vMovimiento.xaml  (PB05 · MAP-5 · HU1 Registrar gasto)
     Pantalla "Nuevo movimiento" según el mockup.
     Se abre desde el botón "+ Nuevo" de vInicio.
+    PB09: al tocar un movimiento en vInicio se abre en modo "Editar movimiento".
+    PB10: en modo edición aparece el botón "Eliminar movimiento".
 -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
@@ -13,7 +15,8 @@
         <VerticalStackLayout Padding="20" Spacing="12">
 
             <!-- Título -->
-            <Label Text="Nuevo movimiento"
+            <Label x:Name="lblTitulo"
+                   Text="Nuevo movimiento"
                    Style="{StaticResource TituloPagina}"/>
 
             <!-- Tipo: Gasto | Ingreso (V01) -->
@@ -107,6 +110,13 @@
                     Clicked="btnGuardar_Clicked"
                     Style="{StaticResource BotonPrimario}"
                     Margin="0,10,0,0"/>
+
+            <!-- PB10: solo visible al editar un movimiento -->
+            <Button x:Name="btnEliminar"
+                    Text="Eliminar movimiento"
+                    Clicked="btnEliminar_Clicked"
+                    Style="{StaticResource BotonSecundario}"
+                    IsVisible="False"/>
 
         </VerticalStackLayout>
     </ScrollView>

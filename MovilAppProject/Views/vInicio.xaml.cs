@@ -209,10 +209,10 @@ public partial class vInicio : ContentPage
         }
     }
 
-    // Crea una fila como en el mockup:
+    // Crea una fila como en el mockup (al tocarla se edita, PB09):
     //   Almuerzo                    -$4,50
     //   Comida · Necesidades · 07/11/2026
-    private Grid CrearFila(Movimiento m)
+    private Border CrearFila(Movimiento m)
     {
         bool esIngreso = m.Tipo == TipoMovimiento.Ingreso;
         string fecha = m.Fecha.ToString("dd/MM/yyyy");
@@ -269,7 +269,42 @@ public partial class vInicio : ContentPage
         fila.Add(lblMonto, 1, 0);
         Grid.SetRowSpan(lblMonto, 2);
 
-        return fila;
+        // Contenedor redondeado que se sombrea al seleccionar la fila
+        Color colorSombreado = (Color)Application.Current.Resources["ColorCampo"];
+        Border contenedor = new Border
+        {
+            Content = fila,
+            BackgroundColor = Colors.Transparent,
+            StrokeThickness = 0,
+            StrokeShape = new Microsoft.Maui.Controls.Shapes.RoundRectangle { CornerRadius = 8 },
+            Padding = new Thickness(8, 6),
+            // Margen negativo para que el texto siga alineado con el título
+            Margin = new Thickness(-8, 0)
+        };
+
+        // PB09: al tocar la fila se sombrea y se abre el movimiento para editarlo
+        TapGestureRecognizer toque = new TapGestureRecognizer();
+        toque.Tapped += async (sender, e) =>
+        {
+            contenedor.BackgroundColor = colorSombreado;
+            await Task.Delay(150);
+            await Navigation.PushAsync(new vMovimiento(m));
+        };
+        contenedor.GestureRecognizers.Add(toque);
+
+        // En Windows: sombreado al pasar el mouse por encima
+        PointerGestureRecognizer puntero = new PointerGestureRecognizer();
+        puntero.PointerEntered += (sender, e) =>
+        {
+            contenedor.BackgroundColor = colorSombreado;
+        };
+        puntero.PointerExited += (sender, e) =>
+        {
+            contenedor.BackgroundColor = Colors.Transparent;
+        };
+        contenedor.GestureRecognizers.Add(puntero);
+
+        return contenedor;
     }
 
     // Formato de dinero: $1.000,00 (USD, 2 decimales, cultura es-EC)

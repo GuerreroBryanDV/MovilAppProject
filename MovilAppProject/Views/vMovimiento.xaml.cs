@@ -1,10 +1,11 @@
-using System.Globalization;
+﻿using System.Globalization;
 using MovilAppProject.Models;
 
 namespace MovilAppProject.Views;
 
 // PB05 · MAP-5 · HU1 Registrar gasto  /  PB07 · guardado en SQLite
-// Validaciones V01 a V08 de la hoja "Validaciones" del Product Backlog.
+// PB09 · Editar movimiento  /  PB10 · Eliminar movimiento con confirmación
+// Validaciones V01 a V09 de la hoja "Validaciones" del Product Backlog.
 public partial class vMovimiento : ContentPage
 {
     // Tipo de movimiento seleccionado (V01). Por defecto: Gasto.
@@ -18,6 +19,9 @@ public partial class vMovimiento : ContentPage
 
     // Nombre del grupo de cada categoría, para mostrar "Comida - Necesidades"
     private readonly Dictionary<int, string> _grupos;
+
+    // PB09: movimiento que se está editando (null = nuevo movimiento)
+    private Movimiento? _movimientoEditar;
 
     public vMovimiento()
     {
@@ -38,6 +42,47 @@ public partial class vMovimiento : ContentPage
         dpFecha.Date = DateTime.Today;
     }
 
+    // ===== PB09: abrir en modo edición =====
+    // Se llama desde vInicio al tocar un movimiento: recibe el movimiento
+    // y carga sus datos en el formulario.
+    public vMovimiento(Movimiento movimiento) : this()
+    {
+        _movimientoEditar = movimiento;
+
+        lblTitulo.Text = "Editar movimiento";
+        Title = "Editar movimiento";
+
+        // Tipo (V01)
+        if (movimiento.Tipo == TipoMovimiento.Ingreso)
+        {
+            btnIngreso_Clicked(btnIngreso, EventArgs.Empty);
+        }
+        else
+        {
+            btnGasto_Clicked(btnGasto, EventArgs.Empty);
+
+            // Selecciona en el Picker la categoría guardada
+            for (int i = 0; i < _categorias.Count; i++)
+            {
+                if (_categorias[i].Id == movimiento.CategoriaId)
+                {
+                    pkCategoria.SelectedIndex = i;
+                    break;
+                }
+            }
+        }
+
+        // Monto, fecha y nota
+        txtMonto.Text = movimiento.Monto.ToString("0.00");
+        dpFecha.Date = movimiento.Fecha;
+        txtNota.Text = movimiento.Nota;
+
+        btnGuardar.Text = "Guardar cambios";
+
+        // PB10: en modo edición se puede eliminar
+        btnEliminar.IsVisible = true;
+    }
+
     // ===== Tipo: Gasto =====
     private void btnGasto_Clicked(object sender, EventArgs e)
     {
@@ -45,7 +90,10 @@ public partial class vMovimiento : ContentPage
         MarcarTipo(btnGasto, btnIngreso);
 
         slCategoria.IsVisible = true;
-        btnGuardar.Text = "Guardar gasto";
+        if (_movimientoEditar == null)
+        {
+            btnGuardar.Text = "Guardar gasto";
+        }
     }
 
     // ===== Tipo: Ingreso =====
@@ -57,7 +105,10 @@ public partial class vMovimiento : ContentPage
         // Al ser Ingreso se oculta la categoría
         slCategoria.IsVisible = false;
         pkCategoria.SelectedIndex = -1;
-        btnGuardar.Text = "Guardar ingreso";
+        if (_movimientoEditar == null)
+        {
+            btnGuardar.Text = "Guardar ingreso";
+        }
     }
 
     // Pinta el botón seleccionado en verde oscuro y el otro sin fondo
@@ -98,14 +149,14 @@ public partial class vMovimiento : ContentPage
             // V02: monto obligatorio
             if (string.IsNullOrEmpty(montoTexto))
             {
-                await DisplayAlertAsync("Error", "El monto es obligatorio.", "Cerrar");
+                await DisplayAlertAsync("Error", "El monto es obligatorio.", "Aceptar");
                 return;
             }
 
             // V03: solo números con hasta 2 decimales
             if (!MontoValido(montoTexto))
             {
-                await DisplayAlertAsync("Error", "El monto solo admite números con hasta 2 decimales.", "Cerrar");
+                await DisplayAlertAsync("Error", "El monto solo admite números con hasta 2 decimales.", "Aceptar");
                 txtMonto.Text = "";
                 return;
             }
@@ -116,7 +167,7 @@ public partial class vMovimiento : ContentPage
             // V04: mayor a 0 y máximo 99.999,99
             if (monto <= 0 || monto > montoMaximo)
             {
-                await DisplayAlertAsync("Error", "El monto debe ser mayor a 0 y no superar $99.999,99.", "Cerrar");
+                await DisplayAlertAsync("Error", "El monto debe ser mayor a 0 y no superar $99.999,99.", "Aceptar");
                 txtMonto.Text = "";
                 return;
             }
@@ -128,7 +179,7 @@ public partial class vMovimiento : ContentPage
             {
                 if (pkCategoria.SelectedIndex == -1)
                 {
-                    await DisplayAlertAsync("Error", "Selecciona una categoría.", "Cerrar");
+                    await DisplayAlertAsync("Error", "Selecciona una categoría.", "Aceptar");
                     return;
                 }
 
@@ -139,7 +190,7 @@ public partial class vMovimiento : ContentPage
                 Categoria? categoriaIngreso = App.MovimientoRepo.ObtenerCategoriaIngreso();
                 if (categoriaIngreso is null)
                 {
-                    await DisplayAlertAsync("Error", App.MovimientoRepo.StatusMessage, "Cerrar");
+                    await DisplayAlertAsync("Error", App.MovimientoRepo.StatusMessage, "Aceptar");
                     return;
                 }
 
@@ -149,7 +200,7 @@ public partial class vMovimiento : ContentPage
             // V06: la fecha no puede ser posterior a hoy
             if (fecha.Date > DateTime.Today)
             {
-                await DisplayAlertAsync("Error", "La fecha no puede ser posterior a hoy.", "Cerrar");
+                await DisplayAlertAsync("Error", "La fecha no puede ser posterior a hoy.", "Aceptar");
                 dpFecha.Date = DateTime.Today;
                 return;
             }
@@ -157,7 +208,7 @@ public partial class vMovimiento : ContentPage
             // V07: nota opcional de máximo 100 caracteres
             if (nota.Length > 100)
             {
-                await DisplayAlertAsync("Error", "La nota admite máximo 100 caracteres.", "Cerrar");
+                await DisplayAlertAsync("Error", "La nota admite máximo 100 caracteres.", "Aceptar");
                 return;
             }
 
@@ -171,20 +222,69 @@ public partial class vMovimiento : ContentPage
                 Nota = nota
             };
 
-            if (!App.MovimientoRepo.AgregarMovimiento(movimiento))
+            bool guardado;
+            if (_movimientoEditar == null)
             {
-                await DisplayAlertAsync("Error", App.MovimientoRepo.StatusMessage, "Cerrar");
+                // Nuevo movimiento (PB05)
+                guardado = App.MovimientoRepo.AgregarMovimiento(movimiento);
+            }
+            else
+            {
+                // PB09: se actualiza el mismo registro (por su Id)
+                movimiento.Id = _movimientoEditar.Id;
+                guardado = App.MovimientoRepo.EditarMovimiento(movimiento);
+            }
+
+            if (!guardado)
+            {
+                await DisplayAlertAsync("Error", App.MovimientoRepo.StatusMessage, "Aceptar");
                 return;
             }
 
-            await DisplayAlertAsync("Éxito", "Movimiento guardado", "Cerrar");
+            await DisplayAlertAsync("Éxito", "Movimiento guardado", "Aceptar");
 
             // Regresa a vInicio, que recarga el saldo en OnAppearing
             await Navigation.PopAsync();
         }
         catch (Exception ex)
         {
-            await DisplayAlertAsync("Error", ex.Message, "Cerrar");
+            await DisplayAlertAsync("Error", ex.Message, "Aceptar");
+        }
+    }
+
+    // ===== PB10: Eliminar con confirmación (V09) =====
+    private async void btnEliminar_Clicked(object sender, EventArgs e)
+    {
+        try
+        {
+            if (_movimientoEditar == null)
+            {
+                return;
+            }
+
+            // V09: confirmar antes de borrar; con Cancelar no cambia nada
+            bool eliminar = await DisplayAlertAsync("¿Eliminar este movimiento?",
+                                                    "Esta acción no se puede deshacer.",
+                                                    "Eliminar", "Cancelar");
+            if (!eliminar)
+            {
+                return;
+            }
+
+            if (!App.MovimientoRepo.EliminarMovimiento(_movimientoEditar.Id))
+            {
+                await DisplayAlertAsync("Error", App.MovimientoRepo.StatusMessage, "Aceptar");
+                return;
+            }
+
+            await DisplayAlertAsync("Éxito", App.MovimientoRepo.StatusMessage, "Aceptar");
+
+            // Regresa a vInicio, que recarga el saldo en OnAppearing
+            await Navigation.PopAsync();
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlertAsync("Error", ex.Message, "Aceptar");
         }
     }
 
