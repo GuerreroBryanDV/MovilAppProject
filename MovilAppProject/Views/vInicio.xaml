@@ -3,6 +3,7 @@
     vInicio.xaml  (pantalla principal de GastoFácil, según el mockup)
     PB07: saldo actual, ingresos y egresos del mes, botón "+ Nuevo".
     PB08: últimos movimientos del mes.
+    PB14: selector de mes ‹ Noviembre 2026 › (no permite meses futuros, V10).
     Además: resumen de la regla 50/40/10 y tarjeta de recomendación IA.
 -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
@@ -11,10 +12,24 @@
              ControlTemplate="{StaticResource PlantillaConBarra}"
              Title="Inicio">
 
+    <!-- Estilo de los botones ‹ › del selector de mes (PB14) -->
+    <ContentPage.Resources>
+        <Style x:Key="BotonMes" TargetType="Button">
+            <Setter Property="BackgroundColor" Value="Transparent"/>
+            <Setter Property="TextColor" Value="{StaticResource Primary}"/>
+            <Setter Property="FontSize" Value="20"/>
+            <Setter Property="FontAttributes" Value="Bold"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="WidthRequest" Value="32"/>
+            <Setter Property="HeightRequest" Value="32"/>
+            <Setter Property="CornerRadius" Value="16"/>
+        </Style>
+    </ContentPage.Resources>
+
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="12">
 
-            <!-- ===== Encabezado: GastoFácil / mes  ·  + Nuevo ===== -->
+            <!-- ===== Encabezado: GastoFácil / ‹ mes ›  ·  + Nuevo ===== -->
             <Grid ColumnSpacing="10">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
@@ -29,10 +44,23 @@
                        Style="{StaticResource TituloPagina}"
                        Grid.Row="0"
                        Grid.Column="0"/>
-                <Label x:Name="lblMes"
-                       Style="{StaticResource TextoSecundario}"
-                       Grid.Row="1"
-                       Grid.Column="0"/>
+                <!-- PB14: selector de mes -->
+                <HorizontalStackLayout Spacing="2"
+                                       Grid.Row="1"
+                                       Grid.Column="0">
+                    <Button x:Name="btnMesAnterior"
+                            Text="‹"
+                            Clicked="btnMesAnterior_Clicked"
+                            Style="{StaticResource BotonMes}"/>
+                    <Label x:Name="lblMes"
+                           Style="{StaticResource TextoSecundario}"
+                           FontSize="14"
+                           VerticalOptions="Center"/>
+                    <Button x:Name="btnMesSiguiente"
+                            Text="›"
+                            Clicked="btnMesSiguiente_Clicked"
+                            Style="{StaticResource BotonMes}"/>
+                </HorizontalStackLayout>
                 <Button x:Name="btnNuevo"
                         Text="+ Nuevo"
                         Clicked="btnNuevo_Clicked"
