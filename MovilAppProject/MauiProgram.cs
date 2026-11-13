@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using MovilAppProject.Repositories;
+using MovilAppProject.Services;
 using MovilAppProject.Utils;
 
 namespace MovilAppProject
@@ -20,6 +21,9 @@ namespace MovilAppProject
             // Ruta de la base de datos SQLite de GastoFácil (PB03)
             string dbPath = FileAccessHelper.GetLocalFilePath("gastofacil.db3");
             builder.Services.AddSingleton<MovimientoRepository>(s => ActivatorUtilities.CreateInstance<MovimientoRepository>(s, dbPath));
+
+            // Servicio de cálculo de la regla (PB11): recibe el repositorio por inyección
+            builder.Services.AddSingleton<ReglaPresupuestoService>();
 
 #if DEBUG
             builder.Logging.AddDebug();
