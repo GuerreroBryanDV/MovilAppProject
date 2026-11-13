@@ -1,8 +1,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--
-    vAjustes.xaml
-    Página base creada en PB04 (MAP-4) para la navegación del AppShell.
-    Su contenido se implementa en: PB17 (vAjustes)
+    vAjustes.xaml  (PB17 · MAP-17 · Pantalla de ajustes)
+    - Bloqueo de la app: al activarlo pide Nuevo PIN y Confirmar PIN (V16, V17).
+    - Recordatorios: interruptor (la programación de avisos es PB20).
+    - Regla 50/40/10: acceso a los perfiles de porcentajes (vPorcentajes, PB15).
+    Los valores se guardan en Preferences y se conservan al cerrar la app.
 -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
@@ -10,12 +12,130 @@
              ControlTemplate="{StaticResource PlantillaConBarra}"
              Title="Ajustes">
 
-    <VerticalStackLayout Padding="20" Spacing="15">
-        <Label Text="Ajustes"
-               Style="{StaticResource TituloPagina}"/>
-        <Label Text="En construcción"
-               Style="{StaticResource TextoSecundario}"
-               HorizontalOptions="Center"/>
-    </VerticalStackLayout>
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="12">
+
+            <!-- Título -->
+            <Label Text="Ajustes"
+                   Style="{StaticResource TituloPagina}"/>
+            <Label Text="Seguridad, recordatorios y perfil de la regla."
+                   Style="{StaticResource TextoSecundario}"/>
+
+            <!-- ===== Seguridad: bloqueo con PIN ===== -->
+            <Border Style="{StaticResource Tarjeta}">
+                <VerticalStackLayout Spacing="10">
+
+                    <Grid ColumnSpacing="10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <VerticalStackLayout Grid.Column="0"
+                                             VerticalOptions="Center">
+                            <Label Text="Bloqueo de la app"
+                                   Style="{StaticResource EtiquetaCampo}"
+                                   FontSize="15"/>
+                            <Label Text="Pide huella o PIN al abrir GastoFácil."
+                                   Style="{StaticResource TextoSecundario}"/>
+                        </VerticalStackLayout>
+
+                        <Switch x:Name="swBloqueo"
+                                Toggled="swBloqueo_Toggled"
+                                OnColor="{StaticResource ColorAhorro}"
+                                VerticalOptions="Center"
+                                Grid.Column="1"/>
+                    </Grid>
+
+                    <!-- Formulario del PIN: solo aparece al activar el bloqueo -->
+                    <VerticalStackLayout x:Name="slPin"
+                                         Spacing="8"
+                                         IsVisible="False">
+
+                        <Label Text="Nuevo PIN"
+                               Style="{StaticResource EtiquetaCampo}"/>
+                        <Border Style="{StaticResource CampoFormulario}">
+                            <Entry x:Name="txtPin"
+                                   Placeholder="4 dígitos"
+                                   IsPassword="True"
+                                   Keyboard="Numeric"
+                                   MaxLength="4"/>
+                        </Border>
+
+                        <Label Text="Confirmar PIN"
+                               Style="{StaticResource EtiquetaCampo}"/>
+                        <Border Style="{StaticResource CampoFormulario}">
+                            <Entry x:Name="txtConfirmarPin"
+                                   Placeholder="Repite el PIN"
+                                   IsPassword="True"
+                                   Keyboard="Numeric"
+                                   MaxLength="4"/>
+                        </Border>
+
+                        <Grid ColumnSpacing="10"
+                              Margin="0,6,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button x:Name="btnCancelarPin"
+                                    Text="Cancelar"
+                                    Clicked="btnCancelarPin_Clicked"
+                                    Style="{StaticResource BotonSecundario}"
+                                    Grid.Column="0"/>
+                            <Button x:Name="btnGuardarPin"
+                                    Text="Guardar PIN"
+                                    Clicked="btnGuardarPin_Clicked"
+                                    Style="{StaticResource BotonPrimario}"
+                                    Grid.Column="1"/>
+                        </Grid>
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- ===== Recordatorios ===== -->
+            <Border Style="{StaticResource Tarjeta}">
+                <Grid ColumnSpacing="10">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <VerticalStackLayout Grid.Column="0"
+                                         VerticalOptions="Center">
+                        <Label Text="Recordatorios"
+                               Style="{StaticResource EtiquetaCampo}"
+                               FontSize="15"/>
+                        <Label Text="Avisos para registrar tus gastos y aportes de ahorro."
+                               Style="{StaticResource TextoSecundario}"/>
+                    </VerticalStackLayout>
+
+                    <Switch x:Name="swRecordatorios"
+                            Toggled="swRecordatorios_Toggled"
+                            OnColor="{StaticResource ColorAhorro}"
+                            VerticalOptions="Center"
+                            Grid.Column="1"/>
+                </Grid>
+            </Border>
+
+            <!-- ===== Regla 50/40/10 ===== -->
+            <Border Style="{StaticResource Tarjeta}">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Regla 50/40/10"
+                           Style="{StaticResource EtiquetaCampo}"
+                           FontSize="15"/>
+                    <Label Text="Elige o personaliza los porcentajes de tu regla."
+                           Style="{StaticResource TextoSecundario}"/>
+                    <Button x:Name="btnPorcentajes"
+                            Text="Perfiles de porcentajes"
+                            Clicked="btnPorcentajes_Clicked"
+                            Style="{StaticResource BotonSecundario}"/>
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
 
 </ContentPage>
