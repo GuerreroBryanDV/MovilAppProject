@@ -4,6 +4,7 @@ namespace MovilAppProject.Views;
 
 // Pantalla principal de GastoFácil (según el mockup).
 // PB07: lee los movimientos del mes desde SQLite (App.MovimientoRepo).
+// PB14: filtro por mes con los botones ‹ › (no se permiten meses futuros, V10).
 public partial class vInicio : ContentPage
 {
     // Metas de la regla 50/40/10 (en %)
@@ -13,6 +14,12 @@ public partial class vInicio : ContentPage
 
     // Cuántos movimientos se muestran en "Últimos movimientos"
     const int maximoMovimientos = 5;
+
+    // PB14: mes que se está mostrando (siempre el día 1 de ese mes).
+    // Es "static" para que se conserve al cambiar de pestaña y para que
+    // vRegla (PB12) pueda usar el mismo mes: vInicio.MesSeleccionado
+    public static DateTime MesSeleccionado { get; private set; } =
+        new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
 
     public vInicio()
     {
@@ -25,6 +32,30 @@ public partial class vInicio : ContentPage
     {
         base.OnAppearing();
         CargarDatos();
+    }
+
+    // ===== PB14: mes anterior =====
+    private void btnMesAnterior_Clicked(object sender, EventArgs e)
+    {
+        MesSeleccionado = MesSeleccionado.AddMonths(-1);
+        CargarDatos();
+    }
+
+    // ===== PB14: mes siguiente (nunca pasa del mes actual, V10) =====
+    private void btnMesSiguiente_Clicked(object sender, EventArgs e)
+    {
+        if (!EsMesActual())
+        {
+            MesSeleccionado = MesSeleccionado.AddMonths(1);
+        }
+        CargarDatos();
+    }
+
+    // true si el mes seleccionado es el mes actual
+    private bool EsMesActual()
+    {
+        DateTime hoy = DateTime.Today;
+        return MesSeleccionado.Year == hoy.Year && MesSeleccionado.Month == hoy.Month;
     }
 
     // Abre la pantalla "Nuevo movimiento"
@@ -45,15 +76,24 @@ public partial class vInicio : ContentPage
     {
         try
         {
-            DateTime hoy = DateTime.Today;
-
-            // Mes actual: "Noviembre 2026"
-            string mes = hoy.ToString("MMMM yyyy");
+            // PB14: mes seleccionado: "Noviembre 2026"
+            string mes = MesSeleccionado.ToString("MMMM yyyy");
             lblMes.Text = mes.Substring(0, 1).ToUpper() + mes.Substring(1);
 
-            // Movimientos del mes actual, del más reciente al más antiguo.
+            // V10: el botón › se deshabilita en el mes actual (no hay meses futuros)
+            btnMesSiguiente.IsEnabled = !EsMesActual();
+            if (btnMesSiguiente.IsEnabled)
+            {
+                btnMesSiguiente.Opacity = 1;
+            }
+            else
+            {
+                btnMesSiguiente.Opacity = 0.3;
+            }
+
+            // Movimientos del mes seleccionado, del más reciente al más antiguo.
             // Se consulta una sola vez y de aquí salen todos los totales.
-            List<Movimiento> movimientos = App.MovimientoRepo.ListarPorMes(hoy.Year, hoy.Month);
+            List<Movimiento> movimientos = App.MovimientoRepo.ListarPorMes(MesSeleccionado.Year, MesSeleccionado.Month);
 
             // Totales
             decimal ingresos = 0;
