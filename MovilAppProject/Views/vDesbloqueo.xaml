@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    vDesbloqueo.xaml  (PB18 · MAP-18 · Bloqueo con huella, Face ID o PIN)
+    Pantalla del mockup: aparece al abrir la app si el bloqueo está activo
+    (se activa en vAjustes, PB17). Sin autenticarse no se accede a vInicio.
+    V18: 3 intentos de PIN; al tercer error se espera 30 segundos.
+    V19: "Usar huella" solo aparece si el dispositivo tiene biometría.
+-->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MovilAppProject.Views.vDesbloqueo"
+             Title="Desbloqueo">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="30,60,30,30"
+                             Spacing="16"
+                             VerticalOptions="Center">
+
+            <!-- Logo -->
+            <Label Text="GastoFácil"
+                   Style="{StaticResource TituloPagina}"
+                   FontSize="28"
+                   HorizontalOptions="Center"/>
+            <Label Text="Tus finanzas, solo en tu dispositivo."
+                   Style="{StaticResource TextoSecundario}"
+                   HorizontalOptions="Center"/>
+
+            <!-- Ícono de huella (círculos concéntricos, como en el mockup) -->
+            <Grid WidthRequest="90"
+                  HeightRequest="90"
+                  HorizontalOptions="Center"
+                  Margin="0,30,0,10">
+                <Ellipse Stroke="{StaticResource Primary}"
+                         StrokeThickness="5"
+                         WidthRequest="90"
+                         HeightRequest="90"/>
+                <Ellipse Stroke="{StaticResource Primary}"
+                         StrokeThickness="5"
+                         WidthRequest="60"
+                         HeightRequest="60"/>
+                <Ellipse Stroke="{StaticResource Primary}"
+                         StrokeThickness="5"
+                         WidthRequest="30"
+                         HeightRequest="30"/>
+            </Grid>
+
+            <Label x:Name="lblInstruccion"
+                   Text="Desbloquea con tu huella o Face ID"
+                   FontSize="15"
+                   TextColor="{StaticResource Primary}"
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"/>
+
+            <!-- Botones del mockup -->
+            <Button x:Name="btnHuella"
+                    Text="Usar huella"
+                    Clicked="btnHuella_Clicked"
+                    Style="{StaticResource BotonPrimario}"
+                    Margin="0,20,0,0"/>
+            <Button x:Name="btnUsarPin"
+                    Text="Usar PIN"
+                    Clicked="btnUsarPin_Clicked"
+                    Style="{StaticResource BotonSecundario}"/>
+
+            <!-- Ingreso del PIN -->
+            <VerticalStackLayout x:Name="slPin"
+                                 Spacing="10"
+                                 IsVisible="False">
+                <Label Text="PIN"
+                       Style="{StaticResource EtiquetaCampo}"/>
+                <Border Style="{StaticResource CampoFormulario}">
+                    <Entry x:Name="txtPin"
+                           Placeholder="4 dígitos"
+                           IsPassword="True"
+                           Keyboard="Numeric"
+                           MaxLength="4"
+                           HorizontalTextAlignment="Center"
+                           FontSize="22"
+                           Completed="btnDesbloquear_Clicked"/>
+                </Border>
+
+                <Button x:Name="btnDesbloquear"
+                        Text="Desbloquear"
+                        Clicked="btnDesbloquear_Clicked"
+                        Style="{StaticResource BotonPrimario}"/>
+
+                <!-- V18: cuenta regresiva de 30 segundos -->
+                <Label x:Name="lblEspera"
+                       Style="{StaticResource MontoGasto}"
+                       HorizontalOptions="Center"
+                       IsVisible="False"/>
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
