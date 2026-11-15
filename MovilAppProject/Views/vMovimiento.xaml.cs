@@ -6,6 +6,7 @@ namespace MovilAppProject.Views;
 // PB05 · MAP-5 · HU1 Registrar gasto  /  PB07 · guardado en SQLite
 // PB09 · Editar movimiento  /  PB10 · Eliminar movimiento con confirmación
 // Validaciones V01 a V09 de la hoja "Validaciones" del Product Backlog.
+// PB24: solo se muestran los mensajes de esa hoja, con DisplayAlert("Error", mensaje, "Aceptar").
 public partial class vMovimiento : ContentPage
 {
     // Tipo de movimiento seleccionado (V01). Por defecto: Gasto.
@@ -190,7 +191,7 @@ public partial class vMovimiento : ContentPage
                 Categoria? categoriaIngreso = App.MovimientoRepo.ObtenerCategoriaIngreso();
                 if (categoriaIngreso is null)
                 {
-                    await DisplayAlertAsync("Error", App.MovimientoRepo.StatusMessage, "Aceptar");
+                    await DisplayAlertAsync("Error", MensajeRepositorio(), "Aceptar");
                     return;
                 }
 
@@ -205,12 +206,8 @@ public partial class vMovimiento : ContentPage
                 return;
             }
 
-            // V07: nota opcional de máximo 100 caracteres
-            if (nota.Length > 100)
-            {
-                await DisplayAlertAsync("Error", "La nota admite máximo 100 caracteres.", "Aceptar");
-                return;
-            }
+            // V07: nota opcional; el Entry ya limita a 100 caracteres (MaxLength)
+            // y el modelo la guarda sin espacios o vacía (no lleva mensaje propio).
 
             // V08: solo se llega aquí si todo es válido
             Movimiento movimiento = new()
@@ -237,7 +234,7 @@ public partial class vMovimiento : ContentPage
 
             if (!guardado)
             {
-                await DisplayAlertAsync("Error", App.MovimientoRepo.StatusMessage, "Aceptar");
+                await DisplayAlertAsync("Error", MensajeRepositorio(), "Aceptar");
                 return;
             }
 
@@ -273,11 +270,11 @@ public partial class vMovimiento : ContentPage
 
             if (!App.MovimientoRepo.EliminarMovimiento(_movimientoEditar.Id))
             {
-                await DisplayAlertAsync("Error", App.MovimientoRepo.StatusMessage, "Aceptar");
+                await DisplayAlertAsync("Error", MensajeRepositorio(), "Aceptar");
                 return;
             }
 
-            await DisplayAlertAsync("Éxito", App.MovimientoRepo.StatusMessage, "Aceptar");
+            await DisplayAlertAsync("Éxito", MensajeRepositorio(), "Aceptar");
 
             // Regresa a vInicio, que recarga el saldo en OnAppearing
             await Navigation.PopAsync();
@@ -286,6 +283,18 @@ public partial class vMovimiento : ContentPage
         {
             await DisplayAlertAsync("Error", ex.Message, "Aceptar");
         }
+    }
+
+    // PB24: el repositorio devuelve "Error: ..."; como la alerta ya se titula
+    // "Error", se quita el prefijo para no repetir la palabra.
+    private string MensajeRepositorio()
+    {
+        string mensaje = App.MovimientoRepo.StatusMessage;
+        if (mensaje.StartsWith("Error: "))
+        {
+            mensaje = mensaje.Substring(7);
+        }
+        return mensaje;
     }
 
     // Nombre del grupo de una categoría ("Necesidades", "Lujos"...)
