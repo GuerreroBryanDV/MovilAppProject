@@ -1,5 +1,6 @@
 ﻿using System.Globalization;
 using MovilAppProject.Repositories;
+using MovilAppProject.Services;
 
 namespace MovilAppProject
 {
@@ -9,9 +10,13 @@ namespace MovilAppProject
         // Repositorio de SQLite disponible para todas las vistas (PB03 / PB06)
         public static MovimientoRepository MovimientoRepo { get; private set; } = null!;
 
-        public App(MovimientoRepository repo)
+        // Servicio de la regla disponible para todas las vistas (PB11 / PB13)
+        public static ReglaPresupuestoService ReglaService { get; private set; } = null!;
+
+        public App(MovimientoRepository repo, ReglaPresupuestoService reglaService)
         {
             MovimientoRepo = repo;
+            ReglaService = reglaService;
             // PB04 · RNF09: textos en español, moneda USD y fechas dd/MM/aaaa.
             // La cultura es-EC (Ecuador) usa dólar ($), coma decimal (25,50)
             // y punto de miles ($99.999,99), igual que los mensajes del Backlog.
