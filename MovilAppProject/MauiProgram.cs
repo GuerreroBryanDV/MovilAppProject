@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Plugin.LocalNotification;
 using MovilAppProject.Repositories;
 using MovilAppProject.Services;
 using MovilAppProject.Utils;
@@ -12,6 +13,7 @@ namespace MovilAppProject
             var builder = MauiApp.CreateBuilder();
             builder
                 .UseMauiApp<App>()
+                .UseLocalNotification()   // PB20: notificaciones locales (Plugin.LocalNotification)
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
@@ -24,6 +26,9 @@ namespace MovilAppProject
 
             // Servicio de cálculo de la regla (PB11): recibe el repositorio por inyección
             builder.Services.AddSingleton<ReglaPresupuestoService>();
+
+            // Servicio de recordatorios locales (PB20)
+            builder.Services.AddSingleton<RecordatorioService>();
 
 #if DEBUG
             builder.Logging.AddDebug();

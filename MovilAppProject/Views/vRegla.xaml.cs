@@ -32,7 +32,10 @@ public partial class vRegla : ContentPage
 
             ResultadoRegla resultado = App.ReglaService.CalcularRegla(hoy.Year, hoy.Month);
 
-            lblTitulo.Text = "Regla " + resultado.Perfil.Nombre;
+            // Título con los porcentajes del perfil elegido en vPorcentajes (PB15): "Regla 60/30/10"
+            lblTitulo.Text = "Regla " + resultado.Perfil.PorcentajeNecesidades + "/"
+                           + resultado.Perfil.PorcentajeAhorroInversion + "/"
+                           + resultado.Perfil.PorcentajeLujos;
             lblIngresos.Text = "Ingresos del mes: $" + resultado.Ingresos.ToString("N2");
 
             // Error al leer la base de datos

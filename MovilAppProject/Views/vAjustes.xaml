@@ -2,7 +2,7 @@
 <!--
     vAjustes.xaml  (PB17 · MAP-17 · Pantalla de ajustes)
     - Bloqueo de la app: al activarlo pide Nuevo PIN y Confirmar PIN (V16, V17).
-    - Recordatorios: interruptor (la programación de avisos es PB20).
+    - Recordatorios: interruptor; al activarlo se pide texto, hora y frecuencia (PB20, V20-V23).
     - Regla 50/40/10: acceso a los perfiles de porcentajes (vPorcentajes, PB15).
     Los valores se guardan en Preferences y se conservan al cerrar la app.
 -->
@@ -97,6 +97,8 @@
 
             <!-- ===== Recordatorios ===== -->
             <Border Style="{StaticResource Tarjeta}">
+                <VerticalStackLayout Spacing="10">
+
                 <Grid ColumnSpacing="10">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
@@ -118,6 +120,63 @@
                             VerticalOptions="Center"
                             Grid.Column="1"/>
                 </Grid>
+
+                    <!-- PB20: recordatorio programado ("Registrar ahorro · 20:00 · Semanal") -->
+                    <Label x:Name="lblRecordatorioActual"
+                           Style="{StaticResource TextoSecundario}"
+                           IsVisible="False"/>
+
+                    <!-- PB20 · Formulario del recordatorio: solo aparece al activar el interruptor -->
+                    <VerticalStackLayout x:Name="slRecordatorio"
+                                         Spacing="8"
+                                         IsVisible="False">
+
+                        <!-- V20: de 3 a 50 caracteres -->
+                        <Label Text="Texto del recordatorio"
+                               Style="{StaticResource EtiquetaCampo}"/>
+                        <Border Style="{StaticResource CampoFormulario}">
+                            <Entry x:Name="txtRecordatorio"
+                                   Placeholder="Ej. Registrar ahorro"
+                                   MaxLength="50"/>
+                        </Border>
+
+                        <!-- V21: por defecto 20:00 -->
+                        <Label Text="Hora"
+                               Style="{StaticResource EtiquetaCampo}"/>
+                        <Border Style="{StaticResource CampoFormulario}">
+                            <TimePicker x:Name="tpHora"
+                                        Format="HH:mm"/>
+                        </Border>
+
+                        <!-- V22: Diaria / Semanal / Mensual -->
+                        <Label Text="Frecuencia"
+                               Style="{StaticResource EtiquetaCampo}"/>
+                        <Border Style="{StaticResource CampoFormulario}">
+                            <Picker x:Name="pkFrecuencia"
+                                    Title="Selecciona la frecuencia"/>
+                        </Border>
+
+                        <Grid ColumnSpacing="10"
+                              Margin="0,6,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition/>
+                                <ColumnDefinition/>
+                            </Grid.ColumnDefinitions>
+
+                            <Button x:Name="btnCancelarRecordatorio"
+                                    Text="Cancelar"
+                                    Clicked="btnCancelarRecordatorio_Clicked"
+                                    Style="{StaticResource BotonSecundario}"
+                                    Grid.Column="0"/>
+                            <Button x:Name="btnGuardarRecordatorio"
+                                    Text="Guardar"
+                                    Clicked="btnGuardarRecordatorio_Clicked"
+                                    Style="{StaticResource BotonPrimario}"
+                                    Grid.Column="1"/>
+                        </Grid>
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
             </Border>
 
             <!-- ===== Regla 50/40/10 ===== -->
