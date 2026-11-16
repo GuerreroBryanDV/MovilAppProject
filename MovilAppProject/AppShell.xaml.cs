@@ -27,7 +27,7 @@ namespace MovilAppProject
             desbloqueoMostrado = true;
 
             bool bloqueoActivo = Preferences.Get(Views.vAjustes.ClaveBloqueo, false);
-            bool hayPin = Preferences.ContainsKey(Views.vAjustes.ClavePin);
+            bool hayPin = bloqueoActivo && await Utils.PinStorage.ExisteAsync();
 
             if (bloqueoActivo && hayPin)
             {

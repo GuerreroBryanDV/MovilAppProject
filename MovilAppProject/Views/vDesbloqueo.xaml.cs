@@ -82,7 +82,8 @@ public partial class vDesbloqueo : ContentPage
                 return;
             }
 
-            string pinGuardado = Preferences.Get(vAjustes.ClavePin, "");
+            // El PIN está en SecureStorage (RNF05)
+            string pinGuardado = await Utils.PinStorage.ObtenerAsync() ?? "";
 
             // PIN correcto: se cierra esta pantalla y se ve vInicio
             if (pin == pinGuardado)

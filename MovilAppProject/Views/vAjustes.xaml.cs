@@ -2,14 +2,13 @@ namespace MovilAppProject.Views;
 
 // PB17 · MAP-17 · Pantalla de ajustes
 // Validaciones V16 (PIN de 4 dígitos) y V17 (los PIN deben coincidir).
-// Los valores se guardan en Preferences, así se conservan al cerrar la app.
-// PB18 (vDesbloqueo) leerá las mismas claves: "BloqueoActivo" y "Pin".
+// El interruptor se guarda en Preferences y el PIN en SecureStorage (RNF05),
+// así se conservan al cerrar la app. PB18 (vDesbloqueo) lee ambos.
 // PB20 · Recordatorios locales: V20 (texto), V21 (hora 20:00), V22 (frecuencia), V23 (permiso).
 public partial class vAjustes : ContentPage
 {
     // Claves de Preferences (las usa también PB18)
     public const string ClaveBloqueo = "BloqueoActivo";
-    public const string ClavePin = "Pin";
     public const string ClaveRecordatorios = "RecordatoriosActivos";
 
     // Evita que el evento Toggled se ejecute cuando el código mueve el Switch
@@ -66,7 +65,7 @@ public partial class vAjustes : ContentPage
                 if (Preferences.Get(ClaveBloqueo, false))
                 {
                     Preferences.Set(ClaveBloqueo, false);
-                    Preferences.Remove(ClavePin);
+                    Utils.PinStorage.Borrar();
                     await DisplayAlertAsync("Ajustes", "Bloqueo desactivado.", "Aceptar");
                 }
             }
@@ -102,8 +101,8 @@ public partial class vAjustes : ContentPage
                 return;
             }
 
-            // Todo válido: se guarda en Preferences
-            Preferences.Set(ClavePin, pin);
+            // Todo válido: el PIN va a SecureStorage (cifrado) y solo el interruptor a Preferences
+            await Utils.PinStorage.GuardarAsync(pin);
             Preferences.Set(ClaveBloqueo, true);
 
             OcultarFormularioPin();
