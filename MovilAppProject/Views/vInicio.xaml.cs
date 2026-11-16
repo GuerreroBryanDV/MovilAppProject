@@ -1,4 +1,6 @@
 using MovilAppProject.Models;
+using MovilAppProject.Services;
+using MovilAppProject.Utils;
 
 namespace MovilAppProject.Views;
 
@@ -7,19 +9,11 @@ namespace MovilAppProject.Views;
 // PB14: filtro por mes con los botones ‹ › (no se permiten meses futuros, V10).
 public partial class vInicio : ContentPage
 {
-    // Metas de la regla 50/40/10 (en %)
-    const decimal metaNecesidades = 50;
-    const decimal metaAhorro = 40;
-    const decimal metaLujos = 10;
-
     // Cuántos movimientos se muestran en "Últimos movimientos"
     const int maximoMovimientos = 5;
 
-    // PB14: mes que se está mostrando (siempre el día 1 de ese mes).
-    // Es "static" para que se conserve al cambiar de pestaña y para que
-    // vRegla (PB12) pueda usar el mismo mes: vInicio.MesSeleccionado
-    public static DateTime MesSeleccionado { get; private set; } =
-        new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1);
+    // PB14: el mes seleccionado vive en FiltroMes para compartirlo con vRegla.
+    // Las metas de la regla ya no están aquí: salen del perfil de PB15 vía ReglaPresupuestoService.
 
     public vInicio()
     {
@@ -37,25 +31,15 @@ public partial class vInicio : ContentPage
     // ===== PB14: mes anterior =====
     private void btnMesAnterior_Clicked(object sender, EventArgs e)
     {
-        MesSeleccionado = MesSeleccionado.AddMonths(-1);
+        FiltroMes.Anterior();
         CargarDatos();
     }
 
     // ===== PB14: mes siguiente (nunca pasa del mes actual, V10) =====
     private void btnMesSiguiente_Clicked(object sender, EventArgs e)
     {
-        if (!EsMesActual())
-        {
-            MesSeleccionado = MesSeleccionado.AddMonths(1);
-        }
+        FiltroMes.Siguiente();
         CargarDatos();
-    }
-
-    // true si el mes seleccionado es el mes actual
-    private bool EsMesActual()
-    {
-        DateTime hoy = DateTime.Today;
-        return MesSeleccionado.Year == hoy.Year && MesSeleccionado.Month == hoy.Month;
     }
 
     // Abre la pantalla "Nuevo movimiento"
@@ -77,11 +61,10 @@ public partial class vInicio : ContentPage
         try
         {
             // PB14: mes seleccionado: "Noviembre 2026"
-            string mes = MesSeleccionado.ToString("MMMM yyyy");
-            lblMes.Text = mes.Substring(0, 1).ToUpper() + mes.Substring(1);
+            lblMes.Text = FiltroMes.Texto();
 
             // V10: el botón › se deshabilita en el mes actual (no hay meses futuros)
-            btnMesSiguiente.IsEnabled = !EsMesActual();
+            btnMesSiguiente.IsEnabled = !FiltroMes.EsMesActual;
             if (btnMesSiguiente.IsEnabled)
             {
                 btnMesSiguiente.Opacity = 1;
@@ -93,14 +76,11 @@ public partial class vInicio : ContentPage
 
             // Movimientos del mes seleccionado, del más reciente al más antiguo.
             // Se consulta una sola vez y de aquí salen todos los totales.
-            List<Movimiento> movimientos = App.MovimientoRepo.ListarPorMes(MesSeleccionado.Year, MesSeleccionado.Month);
+            List<Movimiento> movimientos = App.MovimientoRepo.ListarPorMes(FiltroMes.Mes.Year, FiltroMes.Mes.Month);
 
             // Totales
             decimal ingresos = 0;
             decimal egresos = 0;
-            decimal necesidades = 0;
-            decimal ahorro = 0;
-            decimal lujos = 0;
 
             foreach (Movimiento m in movimientos)
             {
@@ -111,19 +91,6 @@ public partial class vInicio : ContentPage
                 else
                 {
                     egresos = egresos + m.Monto;
-
-                    if (m.NombreGrupo == "Necesidades")
-                    {
-                        necesidades = necesidades + m.Monto;
-                    }
-                    else if (m.NombreGrupo == "Ahorro e inversión")
-                    {
-                        ahorro = ahorro + m.Monto;
-                    }
-                    else if (m.NombreGrupo == "Lujos")
-                    {
-                        lujos = lujos + m.Monto;
-                    }
                 }
             }
 
@@ -142,7 +109,7 @@ public partial class vInicio : ContentPage
             lblIngresos.Text = FormatoMonto(ingresos);
             lblEgresos.Text = FormatoMonto(egresos);
 
-            MostrarRegla(ingresos, necesidades, ahorro, lujos);
+            MostrarRegla();
             MostrarRecomendacion(ingresos, egresos);
             MostrarMovimientos(movimientos);
         }
@@ -152,59 +119,50 @@ public partial class vInicio : ContentPage
         }
     }
 
-    // ===== Regla 50/40/10 =====
-    private void MostrarRegla(decimal ingresos, decimal necesidades, decimal ahorro, decimal lujos)
+    // ===== Resumen de la regla =====
+    // Todo sale de ReglaPresupuestoService (PB11) con el perfil elegido en PB15,
+    // así vInicio y vRegla muestran siempre los mismos números y el mismo semáforo.
+    private void MostrarRegla()
     {
+        ResultadoRegla resultado = App.ReglaService.CalcularRegla(FiltroMes.Mes.Year, FiltroMes.Mes.Month);
+
+        // Título con los porcentajes del perfil: "Regla 60/30/10"
+        lblTituloRegla.Text = "Regla " + resultado.Perfil.PorcentajeNecesidades + "/"
+                            + resultado.Perfil.PorcentajeAhorroInversion + "/"
+                            + resultado.Perfil.PorcentajeLujos;
+
         // V11: si no hay ingresos no se calculan porcentajes (evita dividir para cero)
-        if (ingresos == 0)
+        if (!resultado.HayIngresos)
         {
             pbNecesidades.Progress = 0;
             pbAhorro.Progress = 0;
             pbLujos.Progress = 0;
             lblEnMeta.Text = "";
+            lblAvisoRegla.Text = resultado.Mensaje;
             lblAvisoRegla.IsVisible = true;
             return;
         }
 
         lblAvisoRegla.IsVisible = false;
 
-        // Porcentaje real de cada grupo sobre los ingresos
-        decimal porcNecesidades = necesidades * 100 / ingresos;
-        decimal porcAhorro = ahorro * 100 / ingresos;
-        decimal porcLujos = lujos * 100 / ingresos;
-
         // La barra muestra cuánto se ha usado de la meta (máximo llena)
-        pbNecesidades.Progress = CalcularBarra(porcNecesidades, metaNecesidades);
-        pbAhorro.Progress = CalcularBarra(porcAhorro, metaAhorro);
-        pbLujos.Progress = CalcularBarra(porcLujos, metaLujos);
-
-        // Necesidades y Lujos son topes máximos; Ahorro es un mínimo a alcanzar
-        int enMeta = 0;
-        if (porcNecesidades <= metaNecesidades)
+        foreach (ResumenGrupo grupo in resultado.Grupos)
         {
-            enMeta = enMeta + 1;
-        }
-        if (porcAhorro >= metaAhorro)
-        {
-            enMeta = enMeta + 1;
-        }
-        if (porcLujos <= metaLujos)
-        {
-            enMeta = enMeta + 1;
+            if (grupo.GrupoId == GrupoPresupuesto.NecesidadesId)
+            {
+                pbNecesidades.Progress = grupo.Progreso;
+            }
+            else if (grupo.GrupoId == GrupoPresupuesto.AhorroInversionId)
+            {
+                pbAhorro.Progress = grupo.Progreso;
+            }
+            else if (grupo.GrupoId == GrupoPresupuesto.LujosId)
+            {
+                pbLujos.Progress = grupo.Progreso;
+            }
         }
 
-        lblEnMeta.Text = enMeta + " de 3 en meta";
-    }
-
-    // Devuelve un valor de 0 a 1 para la ProgressBar
-    private double CalcularBarra(decimal porcentaje, decimal meta)
-    {
-        decimal valor = porcentaje / meta;
-        if (valor > 1)
-        {
-            valor = 1;
-        }
-        return (double)valor;
+        lblEnMeta.Text = resultado.GruposEnMeta + " de " + resultado.Grupos.Count + " en meta";
     }
 
     // ===== Recomendación IA (texto provisional hasta el Sprint 4) =====

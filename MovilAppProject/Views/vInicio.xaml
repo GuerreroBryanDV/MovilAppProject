@@ -12,19 +12,7 @@
              ControlTemplate="{StaticResource PlantillaConBarra}"
              Title="Inicio">
 
-    <!-- Estilo de los botones ‹ › del selector de mes (PB14) -->
-    <ContentPage.Resources>
-        <Style x:Key="BotonMes" TargetType="Button">
-            <Setter Property="BackgroundColor" Value="Transparent"/>
-            <Setter Property="TextColor" Value="{StaticResource Primary}"/>
-            <Setter Property="FontSize" Value="20"/>
-            <Setter Property="FontAttributes" Value="Bold"/>
-            <Setter Property="Padding" Value="0"/>
-            <Setter Property="WidthRequest" Value="32"/>
-            <Setter Property="HeightRequest" Value="32"/>
-            <Setter Property="CornerRadius" Value="16"/>
-        </Style>
-    </ContentPage.Resources>
+    <!-- El estilo BotonMes (botones ‹ ›) está en Resources/Styles/Styles.xaml: lo usan vInicio y vRegla -->
 
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="12">
@@ -124,7 +112,8 @@
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <Label Text="Regla 50/40/10"
+                        <Label x:Name="lblTituloRegla"
+                               Text="Regla 50/40/10"
                                Style="{StaticResource EtiquetaCampo}"
                                Grid.Column="0"/>
                         <Label x:Name="lblEnMeta"

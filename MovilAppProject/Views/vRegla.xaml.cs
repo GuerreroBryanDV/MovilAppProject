@@ -1,4 +1,5 @@
 using MovilAppProject.Services;
+using MovilAppProject.Utils;
 
 namespace MovilAppProject.Views;
 
@@ -19,18 +20,32 @@ public partial class vRegla : ContentPage
         CargarRegla();
     }
 
-    // ===== Carga la regla del mes actual =====
+    // ===== PB14: mes anterior / siguiente (nunca pasa del mes actual, V10) =====
+    private void btnMesAnterior_Clicked(object sender, EventArgs e)
+    {
+        FiltroMes.Anterior();
+        CargarRegla();
+    }
+
+    private void btnMesSiguiente_Clicked(object sender, EventArgs e)
+    {
+        FiltroMes.Siguiente();
+        CargarRegla();
+    }
+
+    // ===== Carga la regla del mes seleccionado =====
     private async void CargarRegla()
     {
         try
         {
-            DateTime hoy = DateTime.Today;
+            // PB14: mes seleccionado (compartido con vInicio): "Noviembre 2026"
+            lblMes.Text = FiltroMes.Texto();
 
-            // Mes actual: "Noviembre 2026"
-            string mes = hoy.ToString("MMMM yyyy");
-            lblMes.Text = mes.Substring(0, 1).ToUpper() + mes.Substring(1);
+            // V10: el botón › se deshabilita en el mes actual (no hay meses futuros)
+            btnMesSiguiente.IsEnabled = !FiltroMes.EsMesActual;
+            btnMesSiguiente.Opacity = FiltroMes.EsMesActual ? 0.3 : 1;
 
-            ResultadoRegla resultado = App.ReglaService.CalcularRegla(hoy.Year, hoy.Month);
+            ResultadoRegla resultado = App.ReglaService.CalcularRegla(FiltroMes.Mes.Year, FiltroMes.Mes.Month);
 
             // Título con los porcentajes del perfil elegido en vPorcentajes (PB15): "Regla 60/30/10"
             lblTitulo.Text = "Regla " + resultado.Perfil.PorcentajeNecesidades + "/"
