@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    vPorcentajes.xaml  (PB15 · Perfiles de porcentajes de la regla)
+    Pantalla "Porcentajes de la regla" según el mockup. Se abre desde vAjustes.
+    - V13: perfiles 50/40/10 (por defecto), Clásica 50/20/30 y Personalizado;
+           en los perfiles fijos los porcentajes son de solo lectura.
+    - V14: en Personalizado cada campo acepta enteros de 0 a 100.
+    - V15: la suma debe ser 100; mientras no lo sea, "Guardar cambios" está deshabilitado.
+    El perfil se guarda en Preferences y vRegla usa las nuevas metas.
+-->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MovilAppProject.Views.vPorcentajes"
+             ControlTemplate="{StaticResource PlantillaConBarra}"
+             Title="Porcentajes de la regla">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="10">
+
+            <!-- Título -->
+            <VerticalStackLayout Spacing="0">
+                <Label Text="Porcentajes de la regla"
+                       Style="{StaticResource TituloPagina}"/>
+                <Label Text="Perfil"
+                       Style="{StaticResource TextoSecundario}"/>
+            </VerticalStackLayout>
+
+            <!-- ===== Perfiles (V13) ===== -->
+
+            <!-- Regla del proyecto (defecto) 50 / 40 / 10 -->
+            <Border x:Name="brdDefecto"
+                    Style="{StaticResource Tarjeta}">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="brdDefecto_Tapped"/>
+                </Border.GestureRecognizers>
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label Text="Regla del proyecto (defecto)"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Primary}"
+                           VerticalOptions="Center"
+                           Grid.Column="0"/>
+                    <Label Text="50 / 40 / 10"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Primary}"
+                           VerticalOptions="Center"
+                           Grid.Column="1"/>
+                </Grid>
+            </Border>
+
+            <!-- Clásica 50 / 20 / 30 -->
+            <Border x:Name="brdClasica"
+                    Style="{StaticResource Tarjeta}">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="brdClasica_Tapped"/>
+                </Border.GestureRecognizers>
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label Text="Clásica"
+                           TextColor="{StaticResource Primary}"
+                           VerticalOptions="Center"
+                           Grid.Column="0"/>
+                    <Label Text="50 / 20 / 30"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Primary}"
+                           VerticalOptions="Center"
+                           Grid.Column="1"/>
+                </Grid>
+            </Border>
+
+            <!-- Personalizado: Tú eliges -->
+            <Border x:Name="brdPersonalizado"
+                    Style="{StaticResource Tarjeta}">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="brdPersonalizado_Tapped"/>
+                </Border.GestureRecognizers>
+                <Grid ColumnDefinitions="*,Auto">
+                    <Label Text="Personalizado"
+                           TextColor="{StaticResource Primary}"
+                           VerticalOptions="Center"
+                           Grid.Column="0"/>
+                    <Label Text="Tú eliges"
+                           TextColor="{StaticResource Primary}"
+                           VerticalOptions="Center"
+                           Grid.Column="1"/>
+                </Grid>
+            </Border>
+
+            <!-- ===== Porcentajes (V14) ===== -->
+
+            <Label Text="Necesidades (%)"
+                   FontSize="12"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource Primary}"
+                   Margin="0,6,0,0"/>
+            <Border Style="{StaticResource Tarjeta}"
+                    Padding="10,0">
+                <Entry x:Name="txtNecesidades"
+                       Keyboard="Numeric"
+                       MaxLength="3"
+                       TextChanged="txtPorcentaje_TextChanged"
+                       Unfocused="txtPorcentaje_Unfocused"/>
+            </Border>
+
+            <Label Text="Ahorro e inversión (%)"
+                   FontSize="12"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource Primary}"/>
+            <Border Style="{StaticResource Tarjeta}"
+                    Padding="10,0">
+                <Entry x:Name="txtAhorro"
+                       Keyboard="Numeric"
+                       MaxLength="3"
+                       TextChanged="txtPorcentaje_TextChanged"
+                       Unfocused="txtPorcentaje_Unfocused"/>
+            </Border>
+
+            <Label Text="Lujos (%)"
+                   FontSize="12"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource Primary}"/>
+            <Border Style="{StaticResource Tarjeta}"
+                    Padding="10,0">
+                <Entry x:Name="txtLujos"
+                       Keyboard="Numeric"
+                       MaxLength="3"
+                       TextChanged="txtPorcentaje_TextChanged"
+                       Unfocused="txtPorcentaje_Unfocused"/>
+            </Border>
+
+            <!-- ===== Suma en vivo (V15) ===== -->
+            <Grid ColumnDefinitions="*,Auto"
+                  Margin="0,6,0,0">
+                <Label Text="Suma"
+                       Style="{StaticResource TextoSecundario}"
+                       Grid.Column="0"/>
+                <Label x:Name="lblSuma"
+                       Text="100 %"
+                       FontAttributes="Bold"
+                       TextColor="{StaticResource ColorIngreso}"
+                       Grid.Column="1"/>
+            </Grid>
+
+            <!-- Mensaje de V14 o V15 mientras los datos no son válidos -->
+            <Label x:Name="lblMensaje"
+                   FontSize="13"
+                   TextColor="{StaticResource ColorGasto}"
+                   IsVisible="False"/>
+
+            <!-- Guardar -->
+            <Button x:Name="btnGuardar"
+                    Text="Guardar cambios"
+                    Clicked="btnGuardar_Clicked"
+                    Style="{StaticResource BotonPrimario}"
+                    Margin="0,6,0,0"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>

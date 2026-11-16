@@ -13,10 +13,14 @@ namespace MovilAppProject
         // Servicio de la regla disponible para todas las vistas (PB11 / PB13)
         public static ReglaPresupuestoService ReglaService { get; private set; } = null!;
 
-        public App(MovimientoRepository repo, ReglaPresupuestoService reglaService)
+        // Servicio de recordatorios locales (PB20)
+        public static RecordatorioService RecordatorioService { get; private set; } = null!;
+
+        public App(MovimientoRepository repo, ReglaPresupuestoService reglaService, RecordatorioService recordatorioService)
         {
             MovimientoRepo = repo;
             ReglaService = reglaService;
+            RecordatorioService = recordatorioService;
             // PB04 · RNF09: textos en español, moneda USD y fechas dd/MM/aaaa.
             // La cultura es-EC (Ecuador) usa dólar ($), coma decimal (25,50)
             // y punto de miles ($99.999,99), igual que los mensajes del Backlog.

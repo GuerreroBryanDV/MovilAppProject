@@ -148,6 +148,12 @@ namespace MovilAppProject.Services
         // Mensaje exacto de la hoja Validaciones (V11)
         public const string MensajeSinIngresos = "Registra un ingreso para ver tu regla del mes.";
 
+        // PB15 · Claves de Preferences del perfil de porcentajes
+        public const string ClavePerfil = "PerfilRegla";
+        public const string ClaveNecesidades = "PorcentajeNecesidades";
+        public const string ClaveAhorro = "PorcentajeAhorroInversion";
+        public const string ClaveLujos = "PorcentajeLujos";
+
         // Límites del semáforo (V12)
         const decimal limiteVerde = 100;
         const decimal limiteAmarillo = 150;
@@ -163,11 +169,65 @@ namespace MovilAppProject.Services
             _repo = repo;
         }
 
-        // Calcula la regla del mes con el perfil por defecto 50/40/10.
-        // En PB15 se pasará el perfil guardado en Preferences.
+        // Calcula la regla del mes con el perfil que eligió el usuario (PB15).
+        // Si no ha elegido ninguno se usa 50/40/10 (por defecto).
         public ResultadoRegla CalcularRegla(int anio, int mes)
         {
-            return CalcularRegla(anio, mes, PerfilPresupuesto.Regla50_40_10);
+            return CalcularRegla(anio, mes, ObtenerPerfilActual());
+        }
+
+        // ---------------- PB15 · Perfil de porcentajes (Preferences) ----------------
+
+        // Lee el perfil guardado. Si no hay nada guardado o los datos no son válidos,
+        // devuelve el perfil por defecto 50/40/10.
+        public PerfilPresupuesto ObtenerPerfilActual()
+        {
+            string nombre = Preferences.Get(ClavePerfil, PerfilPresupuesto.Regla50_40_10.Nombre);
+
+            if (nombre == PerfilPresupuesto.Clasica50_20_30.Nombre)
+            {
+                return PerfilPresupuesto.Clasica50_20_30;
+            }
+
+            if (nombre == PerfilPresupuesto.NombrePersonalizado)
+            {
+                PerfilPresupuesto personalizado = PerfilPresupuesto.Personalizado(
+                    Preferences.Get(ClaveNecesidades, 50),
+                    Preferences.Get(ClaveAhorro, 40),
+                    Preferences.Get(ClaveLujos, 10));
+
+                if (personalizado.EsValido)
+                {
+                    return personalizado;
+                }
+            }
+
+            return PerfilPresupuesto.Regla50_40_10;
+        }
+
+        // Guarda el perfil elegido. Solo se guarda si los porcentajes suman 100 (V15).
+        public bool GuardarPerfil(PerfilPresupuesto perfil)
+        {
+            try
+            {
+                if (!perfil.EsValido)
+                {
+                    throw new Exception("Los porcentajes deben sumar 100 % (actual: " + perfil.Suma + " %).");
+                }
+
+                Preferences.Set(ClavePerfil, perfil.Nombre);
+                Preferences.Set(ClaveNecesidades, perfil.PorcentajeNecesidades);
+                Preferences.Set(ClaveAhorro, perfil.PorcentajeAhorroInversion);
+                Preferences.Set(ClaveLujos, perfil.PorcentajeLujos);
+
+                StatusMessage = "Porcentajes guardados";
+                return true;
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = ex.Message;
+                return false;
+            }
         }
 
         // Calcula por grupo: total gastado, % real sobre ingresos, meta y dinero restante o excedido
