@@ -1,3 +1,5 @@
+using Plugin.Maui.Biometric;
+
 namespace MovilAppProject.Views;
 
 // PB18 · MAP-18 · Bloqueo con huella, Face ID o PIN
@@ -12,24 +14,50 @@ public partial class vDesbloqueo : ContentPage
     // Errores de PIN acumulados
     int intentosFallidos = 0;
 
-    // V19: "Usar huella" solo se muestra si el dispositivo tiene biometría.
-    // PENDIENTE: la detección y el uso de la huella necesitan un paquete NuGet
-    // (por ejemplo Plugin.Maui.Biometric) que el equipo aún no ha aprobado.
-    // Mientras tanto se considera que no hay biometría y se usa solo el PIN.
+    // V19: "Usar huella" solo se muestra si el dispositivo tiene biometría con datos registrados.
+    // Se detecta con Plugin.Maui.Biometric (D15) al aparecer la pantalla.
     bool hayBiometria = false;
 
     public vDesbloqueo()
     {
         InitializeComponent();
 
-        btnHuella.IsVisible = hayBiometria;
+        // Hasta saber si hay biometría se muestra solo el PIN (siempre disponible)
+        MostrarSoloPin();
+    }
 
-        if (!hayBiometria)
+    // Sin huella: se muestra directamente el ingreso del PIN
+    private void MostrarSoloPin()
+    {
+        btnHuella.IsVisible = false;
+        lblInstruccion.Text = "Ingresa tu PIN para continuar.";
+        btnUsarPin.IsVisible = false;
+        slPin.IsVisible = true;
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+
+        try
         {
-            // Sin huella: se muestra directamente el ingreso del PIN
-            lblInstruccion.Text = "Ingresa tu PIN para continuar.";
-            btnUsarPin.IsVisible = false;
-            slPin.IsVisible = true;
+            // V19: la huella solo aparece si el dispositivo la tiene y hay una registrada
+            BiometricHwStatus estado = await BiometricAuthenticationService.Default
+                .GetAuthenticationStatusAsync(AuthenticatorStrength.Strong);
+            hayBiometria = estado == BiometricHwStatus.Success;
+        }
+        catch
+        {
+            // Si el dispositivo no responde se usa solo el PIN
+            hayBiometria = false;
+        }
+
+        if (hayBiometria)
+        {
+            lblInstruccion.Text = "Desbloquea con tu huella o Face ID";
+            btnHuella.IsVisible = true;
+            btnUsarPin.IsVisible = true;
+            slPin.IsVisible = false;
         }
     }
 
@@ -42,8 +70,32 @@ public partial class vDesbloqueo : ContentPage
     // ===== Usar huella (V19) =====
     private async void btnHuella_Clicked(object sender, EventArgs e)
     {
-        // PENDIENTE: autenticación biométrica (ver comentario de hayBiometria).
-        // Si la huella falla se pide el PIN:
+        try
+        {
+            AuthenticationRequest solicitud = new()
+            {
+                Title = "GastoFácil",
+                Description = "Verifica tu identidad para abrir la app.",
+                NegativeText = "Usar PIN",
+                AllowPasswordAuth = false
+            };
+
+            AuthenticationResponse respuesta = await BiometricAuthenticationService.Default
+                .AuthenticateAsync(solicitud, CancellationToken.None);
+
+            // Huella correcta: se cierra esta pantalla y se ve vInicio
+            if (respuesta.Status == BiometricResponseStatus.Success)
+            {
+                await Navigation.PopModalAsync();
+                return;
+            }
+        }
+        catch
+        {
+            // Cualquier falla del lector se trata igual que una huella no reconocida
+        }
+
+        // V19: si la huella falla se pide el PIN
         await DisplayAlertAsync("Error", "No se pudo verificar tu huella. Usa tu PIN.", "Aceptar");
         MostrarPin();
     }
