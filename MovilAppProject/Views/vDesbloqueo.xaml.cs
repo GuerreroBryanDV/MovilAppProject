@@ -1,4 +1,4 @@
-using Plugin.Maui.Biometric;
+using MovilAppProject.Utils;
 
 namespace MovilAppProject.Views;
 
@@ -15,7 +15,7 @@ public partial class vDesbloqueo : ContentPage
     int intentosFallidos = 0;
 
     // V19: "Usar huella" solo se muestra si el dispositivo tiene biometría con datos registrados.
-    // Se detecta con Plugin.Maui.Biometric (D15) al aparecer la pantalla.
+    // Se detecta con Utils/Biometria (Plugin.Maui.Biometric, D16) al aparecer la pantalla.
     bool hayBiometria = false;
 
     public vDesbloqueo()
@@ -39,18 +39,8 @@ public partial class vDesbloqueo : ContentPage
     {
         base.OnAppearing();
 
-        try
-        {
-            // V19: la huella solo aparece si el dispositivo la tiene y hay una registrada
-            BiometricHwStatus estado = await BiometricAuthenticationService.Default
-                .GetAuthenticationStatusAsync(AuthenticatorStrength.Strong);
-            hayBiometria = estado == BiometricHwStatus.Success;
-        }
-        catch
-        {
-            // Si el dispositivo no responde se usa solo el PIN
-            hayBiometria = false;
-        }
+        // V19: la huella solo aparece si el dispositivo la tiene y hay una registrada
+        hayBiometria = await Biometria.DisponibleAsync();
 
         if (hayBiometria)
         {
@@ -70,29 +60,11 @@ public partial class vDesbloqueo : ContentPage
     // ===== Usar huella (V19) =====
     private async void btnHuella_Clicked(object sender, EventArgs e)
     {
-        try
+        // Huella correcta: se cierra esta pantalla y se ve vInicio
+        if (await Biometria.AutenticarAsync("Verifica tu identidad para abrir la app."))
         {
-            AuthenticationRequest solicitud = new()
-            {
-                Title = "GastoFácil",
-                Description = "Verifica tu identidad para abrir la app.",
-                NegativeText = "Usar PIN",
-                AllowPasswordAuth = false
-            };
-
-            AuthenticationResponse respuesta = await BiometricAuthenticationService.Default
-                .AuthenticateAsync(solicitud, CancellationToken.None);
-
-            // Huella correcta: se cierra esta pantalla y se ve vInicio
-            if (respuesta.Status == BiometricResponseStatus.Success)
-            {
-                await Navigation.PopModalAsync();
-                return;
-            }
-        }
-        catch
-        {
-            // Cualquier falla del lector se trata igual que una huella no reconocida
+            await Navigation.PopModalAsync();
+            return;
         }
 
         // V19: si la huella falla se pide el PIN

@@ -14,6 +14,9 @@ public partial class vAjustes : ContentPage
     // Evita que el evento Toggled se ejecute cuando el código mueve el Switch
     bool cargando = false;
 
+    // D20: true si el formulario del PIN se abrió para cambiarlo (no para activar el bloqueo)
+    bool cambiandoPin = false;
+
     public vAjustes()
     {
         InitializeComponent();
@@ -52,20 +55,26 @@ public partial class vAjustes : ContentPage
             if (e.Value)
             {
                 // Al activar se piden Nuevo PIN y Confirmar PIN
-                txtPin.Text = "";
-                txtConfirmarPin.Text = "";
-                slPin.IsVisible = true;
-                txtPin.Focus();
+                MostrarFormularioPin();
             }
             else
             {
-                // Al desactivar se borra el PIN guardado
                 OcultarFormularioPin();
 
                 if (Preferences.Get(ClaveBloqueo, false))
                 {
+                    // D19: para quitar el bloqueo hay que verificar la identidad (huella o PIN).
+                    // Si no se verifica, el interruptor vuelve a encendido y el bloqueo sigue.
+                    if (!await ConfirmarIdentidadAsync())
+                    {
+                        ApagarBloqueo();
+                        return;
+                    }
+
+                    // Al desactivar se borra el PIN guardado
                     Preferences.Set(ClaveBloqueo, false);
                     Utils.PinStorage.Borrar();
+                    OcultarFormularioPin();
                     await DisplayAlertAsync("Ajustes", "Bloqueo desactivado.", "Aceptar");
                 }
             }
@@ -93,7 +102,8 @@ public partial class vAjustes : ContentPage
                 return;
             }
 
-            // V17: los dos PIN deben ser iguales; si no, el interruptor vuelve a apagado
+            // V17: los dos PIN deben ser iguales; si no, el interruptor vuelve a como estaba
+            // (apagado si se estaba activando; encendido y con el PIN anterior si se estaba cambiando)
             if (pin != confirmarPin)
             {
                 await DisplayAlertAsync("Error", "Los PIN no coinciden.", "Aceptar");
@@ -102,11 +112,12 @@ public partial class vAjustes : ContentPage
             }
 
             // Todo válido: el PIN va a SecureStorage (cifrado) y solo el interruptor a Preferences
+            bool eraCambio = cambiandoPin;
             await Utils.PinStorage.GuardarAsync(pin);
             Preferences.Set(ClaveBloqueo, true);
 
             OcultarFormularioPin();
-            await DisplayAlertAsync("Ajustes", "Bloqueo activado.", "Aceptar");
+            await DisplayAlertAsync("Ajustes", eraCambio ? "PIN actualizado." : "Bloqueo activado.", "Aceptar");
         }
         catch (Exception ex)
         {
@@ -114,10 +125,32 @@ public partial class vAjustes : ContentPage
         }
     }
 
-    // ===== Cancelar: no se guarda nada y el interruptor vuelve a apagado =====
+    // ===== Cancelar: no se guarda nada y el interruptor vuelve a como estaba =====
+    // (al cambiar el PIN, se conserva el PIN anterior)
     private void btnCancelarPin_Clicked(object sender, EventArgs e)
     {
         ApagarBloqueo();
+    }
+
+    // ===== D20: Cambiar PIN =====
+    // Solo con el bloqueo activo. Pide el PIN actual antes de dejar escribir uno nuevo,
+    // así nadie con el teléfono desbloqueado puede reemplazarlo.
+    private async void btnCambiarPin_Clicked(object sender, EventArgs e)
+    {
+        try
+        {
+            if (!await VerificarPinActualAsync("Cambiar PIN", "Ingresa tu PIN actual."))
+            {
+                return;
+            }
+
+            cambiandoPin = true;
+            MostrarFormularioPin();
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlertAsync("Error", ex.Message, "Aceptar");
+        }
     }
 
     // ===== Recordatorios (PB20) =====
@@ -210,7 +243,53 @@ public partial class vAjustes : ContentPage
         }
     }
 
-    // Vuelve a apagar el interruptor sin disparar el evento Toggled
+    // D19: verifica que quien desactiva el bloqueo es el dueño.
+    // Primero la huella (si el dispositivo la tiene); si no, o si falla, el PIN guardado.
+    private async Task<bool> ConfirmarIdentidadAsync()
+    {
+        if (await Utils.Biometria.DisponibleAsync()
+            && await Utils.Biometria.AutenticarAsync("Confirma tu identidad para desactivar el bloqueo."))
+        {
+            return true;
+        }
+
+        return await VerificarPinActualAsync("Desactivar bloqueo", "Ingresa tu PIN para desactivar el bloqueo.");
+    }
+
+    // D19 / D20: pide el PIN guardado y devuelve true solo si es correcto.
+    // Cancelar, un PIN con otro formato (V16) o un PIN distinto devuelven false.
+    private async Task<bool> VerificarPinActualAsync(string titulo, string mensaje)
+    {
+        string? pin = await DisplayPromptAsync(titulo, mensaje,
+                                               "Aceptar", "Cancelar",
+                                               "4 dígitos", 4, Keyboard.Numeric);
+
+        // Canceló: no se cambia nada
+        if (pin is null)
+        {
+            return false;
+        }
+
+        pin = pin.Trim();
+
+        // V16: exactamente 4 dígitos
+        if (!PinValido(pin))
+        {
+            await DisplayAlertAsync("Error", "El PIN debe tener exactamente 4 dígitos.", "Aceptar");
+            return false;
+        }
+
+        string pinGuardado = await Utils.PinStorage.ObtenerAsync() ?? "";
+        if (pin != pinGuardado)
+        {
+            await DisplayAlertAsync("Error", "PIN incorrecto.", "Aceptar");
+            return false;
+        }
+
+        return true;
+    }
+
+    // Deja el interruptor como está guardado (encendido o apagado) sin disparar el evento Toggled
     private void ApagarBloqueo()
     {
         cargando = true;
@@ -267,12 +346,25 @@ public partial class vAjustes : ContentPage
         lblRecordatorioActual.IsVisible = true;
     }
 
-    // Esconde el formulario y limpia los PIN escritos
+    // Muestra Nuevo PIN / Confirmar PIN (al activar el bloqueo o al cambiar el PIN)
+    private void MostrarFormularioPin()
+    {
+        txtPin.Text = "";
+        txtConfirmarPin.Text = "";
+        btnCambiarPin.IsVisible = false;
+        slPin.IsVisible = true;
+        txtPin.Focus();
+    }
+
+    // Esconde el formulario y limpia los PIN escritos.
+    // "Cambiar PIN" solo se ve si el bloqueo está activo (D20).
     private void OcultarFormularioPin()
     {
         txtPin.Text = "";
         txtConfirmarPin.Text = "";
         slPin.IsVisible = false;
+        cambiandoPin = false;
+        btnCambiarPin.IsVisible = Preferences.Get(ClaveBloqueo, false);
     }
 
     // V16: true si el texto tiene exactamente 4 números
