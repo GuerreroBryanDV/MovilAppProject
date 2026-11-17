@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Logging;
+using LiveChartsCore.SkiaSharpView.Maui;
 using Plugin.LocalNotification;
+using SkiaSharp.Views.Maui.Controls.Hosting;
 using MovilAppProject.Repositories;
 using MovilAppProject.Services;
 using MovilAppProject.Utils;
@@ -14,6 +16,8 @@ namespace MovilAppProject
             builder
                 .UseMauiApp<App>()
                 .UseLocalNotification()   // PB20: notificaciones locales (Plugin.LocalNotification)
+                .UseSkiaSharp()           // PB16: LiveCharts2 dibuja el gráfico con SkiaSharp
+                .UseLiveCharts()          // PB16: gráfico de gastos por categoría (D21)
                 .ConfigureFonts(fonts =>
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
