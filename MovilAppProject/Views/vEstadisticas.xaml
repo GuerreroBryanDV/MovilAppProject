@@ -1,21 +1,86 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--
-    vEstadisticas.xaml
-    Página base creada en PB04 (MAP-4) para la navegación del AppShell.
-    Su contenido se implementa en: PB16 (vEstadisticas)
+    vEstadisticas.xaml  (PB16 · MAP-16 · RF11 · HU7, HU8 · Figura 6)
+    Gasto total del mes y gráfico de gastos por categoría (LiveCharts2, D21).
+    PB14: usa el mismo mes que vInicio y vRegla (Utils/FiltroMes).
+    V10: sin gastos en el mes se muestra "No hay movimientos en este mes." en lugar del gráfico.
 -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
              x:Class="MovilAppProject.Views.vEstadisticas"
              ControlTemplate="{StaticResource PlantillaConBarra}"
              Title="Estadísticas">
 
-    <VerticalStackLayout Padding="20" Spacing="15">
-        <Label Text="Estadísticas"
-               Style="{StaticResource TituloPagina}"/>
-        <Label Text="En construcción"
-               Style="{StaticResource TextoSecundario}"
-               HorizontalOptions="Center"/>
-    </VerticalStackLayout>
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="14">
+
+            <!-- ===== Encabezado: "Estadísticas"  ·  ‹ Noviembre 2026 › ===== -->
+            <Grid ColumnDefinitions="*,Auto">
+                <Label Text="Estadísticas"
+                       Style="{StaticResource TituloPagina}"
+                       Grid.Column="0"/>
+                <HorizontalStackLayout Spacing="2"
+                                       VerticalOptions="Center"
+                                       Grid.Column="1">
+                    <Button x:Name="btnMesAnterior"
+                            Text="‹"
+                            Clicked="btnMesAnterior_Clicked"
+                            Style="{StaticResource BotonMes}"/>
+                    <Label x:Name="lblMes"
+                           Style="{StaticResource TextoSecundario}"
+                           VerticalOptions="Center"/>
+                    <Button x:Name="btnMesSiguiente"
+                            Text="›"
+                            Clicked="btnMesSiguiente_Clicked"
+                            Style="{StaticResource BotonMes}"/>
+                </HorizontalStackLayout>
+            </Grid>
+
+            <!-- ===== Gasto total del mes (coincide con los egresos de vInicio, HU7) ===== -->
+            <Border Style="{StaticResource TarjetaOscura}">
+                <VerticalStackLayout Spacing="4">
+                    <Label Text="Gasto total del mes"
+                           FontSize="14"
+                           TextColor="{StaticResource White}"/>
+                    <Label x:Name="lblTotal"
+                           Text="$0,00"
+                           Style="{StaticResource MontoGrande}"
+                           TextColor="{StaticResource White}"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- V10: mes sin gastos -->
+            <Border x:Name="brdSinMovimientos"
+                    Style="{StaticResource Aviso}"
+                    IsVisible="False">
+                <Label Text="No hay movimientos en este mes."
+                       FontSize="13"
+                       TextColor="{StaticResource Primary}"
+                       HorizontalTextAlignment="Center"/>
+            </Border>
+
+            <!-- ===== Gráfico por categoría ===== -->
+            <Border x:Name="brdGrafico"
+                    Style="{StaticResource Tarjeta}">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Gastos por categoría"
+                           Style="{StaticResource EtiquetaCampo}"
+                           FontSize="15"/>
+
+                    <!-- Dona: sin leyenda ni tooltip propios; la lista de abajo hace de leyenda -->
+                    <lvc:PieChart x:Name="chartGastos"
+                                  HeightRequest="240"
+                                  LegendPosition="Hidden"
+                                  TooltipPosition="Hidden"/>
+
+                    <!-- Leyenda: una fila por categoría (se arma en vEstadisticas.xaml.cs) -->
+                    <VerticalStackLayout x:Name="slCategorias"
+                                         Spacing="10"/>
+                </VerticalStackLayout>
+            </Border>
+
+        </VerticalStackLayout>
+    </ScrollView>
 
 </ContentPage>
