@@ -35,6 +35,12 @@
             ContentTemplate="{DataTemplate views:vEstadisticas}"
             Route="vEstadisticas" />
 
+        <!-- PB22: pestaña IA (recomendaciones, Figura 8) -->
+        <ShellContent
+            Title="IA"
+            ContentTemplate="{DataTemplate views:vRecomendaciones}"
+            Route="vRecomendaciones" />
+
         <ShellContent
             Title="Ajustes"
             ContentTemplate="{DataTemplate views:vAjustes}"
