@@ -12,6 +12,10 @@ public partial class vInicio : ContentPage
     // Cuántos movimientos se muestran en "Últimos movimientos"
     const int maximoMovimientos = 5;
 
+    // PB19: número de la última carga pedida. Si el usuario cambia de mes rápido,
+    // solo se muestra la última y no una anterior que terminó tarde.
+    int cargaActual = 0;
+
     // PB14: el mes seleccionado vive en FiltroMes para compartirlo con vRegla.
     // Las metas de la regla ya no están aquí: salen del perfil de PB15 vía ReglaPresupuestoService.
 
@@ -74,9 +78,24 @@ public partial class vInicio : ContentPage
                 btnMesSiguiente.Opacity = 0.3;
             }
 
-            // Movimientos del mes seleccionado, del más reciente al más antiguo.
-            // Se consulta una sola vez y de aquí salen todos los totales.
-            List<Movimiento> movimientos = App.MovimientoRepo.ListarPorMes(FiltroMes.Mes.Year, FiltroMes.Mes.Month);
+            // PB19 (RNF04): la base se consulta una sola vez y fuera del hilo de la pantalla,
+            // así la vista no se congela con muchos movimientos. De esa consulta salen
+            // saldo, regla y últimos movimientos.
+            int carga = ++cargaActual;
+            DateTime mes = FiltroMes.Mes;
+            PerfilPresupuesto perfil = App.ReglaService.ObtenerPerfilActual();
+
+            (List<Movimiento> movimientos, ResultadoRegla regla) = await Task.Run(() =>
+            {
+                List<Movimiento> lista = App.MovimientoRepo.ListarPorMes(mes.Year, mes.Month);
+                return (lista, App.ReglaService.CalcularRegla(lista, perfil));
+            });
+
+            // Si mientras tanto se cambió de mes, este resultado ya no sirve
+            if (carga != cargaActual)
+            {
+                return;
+            }
 
             // Totales
             decimal ingresos = 0;
@@ -109,7 +128,7 @@ public partial class vInicio : ContentPage
             lblIngresos.Text = FormatoMonto(ingresos);
             lblEgresos.Text = FormatoMonto(egresos);
 
-            MostrarRegla();
+            MostrarRegla(regla);
             MostrarRecomendacion(ingresos, egresos);
             MostrarMovimientos(movimientos);
         }
@@ -122,10 +141,8 @@ public partial class vInicio : ContentPage
     // ===== Resumen de la regla =====
     // Todo sale de ReglaPresupuestoService (PB11) con el perfil elegido en PB15,
     // así vInicio y vRegla muestran siempre los mismos números y el mismo semáforo.
-    private void MostrarRegla()
+    private void MostrarRegla(ResultadoRegla resultado)
     {
-        ResultadoRegla resultado = App.ReglaService.CalcularRegla(FiltroMes.Mes.Year, FiltroMes.Mes.Month);
-
         // Título con los porcentajes del perfil: "Regla 60/30/10"
         lblTituloRegla.Text = "Regla " + resultado.Perfil.PorcentajeNecesidades + "/"
                             + resultado.Perfil.PorcentajeAhorroInversion + "/"

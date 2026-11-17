@@ -9,6 +9,10 @@ namespace MovilAppProject.Repositories
         string _dbPath;
         private SQLiteConnection? _conn;
 
+        // PB19: las pantallas leen en segundo plano mientras vMovimiento guarda en el hilo principal.
+        // El candado evita que dos operaciones usen la misma conexión al mismo tiempo.
+        private readonly object _bloqueo = new();
+
         // Mensaje del último resultado (igual que en el ejemplo de la Semana 5)
         public string StatusMessage { get; set; } = string.Empty;
 
@@ -32,7 +36,16 @@ namespace MovilAppProject.Repositories
             _conn.CreateTable<Movimiento>();
 
             CargarDatosPredefinidos(_conn);
+
+            // PB19: categorías y grupos son fijos en v1.0 (no hay categorías personalizadas),
+            // así que se leen una sola vez y no en cada consulta del mes.
+            _categorias = _conn.Table<Categoria>().OrderBy(c => c.Id).ToList();
+            _grupos = _conn.Table<GrupoPresupuesto>().OrderBy(g => g.Orden).ToList();
         }
+
+        // PB19: copia en memoria de las tablas fijas (se llenan en Init)
+        private List<Categoria> _categorias = new();
+        private List<GrupoPresupuesto> _grupos = new();
 
         // Carga los grupos y las categorías una sola vez (si las tablas están vacías)
         private static void CargarDatosPredefinidos(SQLiteConnection conn)
@@ -81,7 +94,11 @@ namespace MovilAppProject.Repositories
             try
             {
                 Init();
-                int result = _conn!.Insert(movimiento);
+                int result;
+                lock (_bloqueo)
+                {
+                    result = _conn!.Insert(movimiento);
+                }
                 if (result == 0)
                     throw new Exception("No se pudo guardar el movimiento");
                 StatusMessage = "Movimiento guardado";
@@ -102,7 +119,11 @@ namespace MovilAppProject.Repositories
                 Init();
                 if (movimiento.Id <= 0)
                     throw new Exception("Seleccione un registro válido");
-                int result = _conn!.Update(movimiento);
+                int result;
+                lock (_bloqueo)
+                {
+                    result = _conn!.Update(movimiento);
+                }
                 if (result == 0)
                     throw new Exception("No se encontró el registro");
                 StatusMessage = "Movimiento guardado";
@@ -123,7 +144,11 @@ namespace MovilAppProject.Repositories
                 Init();
                 if (id <= 0)
                     throw new Exception("Seleccione un registro válido");
-                int result = _conn!.Delete<Movimiento>(id);
+                int result;
+                lock (_bloqueo)
+                {
+                    result = _conn!.Delete<Movimiento>(id);
+                }
                 if (result == 0)
                     throw new Exception("No se encontró el registro");
                 StatusMessage = "Movimiento eliminado";
@@ -145,19 +170,20 @@ namespace MovilAppProject.Repositories
                 DateTime inicio = new DateTime(anio, mes, 1);
                 DateTime fin = inicio.AddMonths(1);
 
-                List<Movimiento> movimientos = _conn!.Table<Movimiento>()
-                    .Where(m => m.Fecha >= inicio && m.Fecha < fin)
-                    .ToList()
-                    .OrderByDescending(m => m.Fecha)
-                    .ThenByDescending(m => m.Id)
-                    .ToList();
+                // PB19 (RNF04): el filtro y el orden los hace SQLite usando el índice de Fecha,
+                // así solo se leen los movimientos del mes y ya vienen ordenados.
+                List<Movimiento> movimientos;
+                lock (_bloqueo)
+                {
+                    movimientos = _conn!.Table<Movimiento>()
+                        .Where(m => m.Fecha >= inicio && m.Fecha < fin)
+                        .OrderByDescending(m => m.Fecha)
+                        .ThenByDescending(m => m.Id)
+                        .ToList();
+                }
 
-                Dictionary<int, Categoria> categorias = _conn.Table<Categoria>()
-                    .ToList()
-                    .ToDictionary(c => c.Id);
-                Dictionary<int, string> grupos = _conn.Table<GrupoPresupuesto>()
-                    .ToList()
-                    .ToDictionary(g => g.Id, g => g.Nombre);
+                Dictionary<int, Categoria> categorias = _categorias.ToDictionary(c => c.Id);
+                Dictionary<int, string> grupos = _grupos.ToDictionary(g => g.Id, g => g.Nombre);
 
                 foreach (Movimiento m in movimientos)
                 {
@@ -209,9 +235,9 @@ namespace MovilAppProject.Repositories
             try
             {
                 Init();
-                return _conn!.Table<Categoria>()
+                // PB19: sale de la copia en memoria (una lista nueva, para que nadie cambie la copia)
+                return _categorias
                     .Where(c => c.GrupoId != null)
-                    .OrderBy(c => c.Id)
                     .ToList();
             }
             catch (Exception ex)
@@ -227,9 +253,8 @@ namespace MovilAppProject.Repositories
             try
             {
                 Init();
-                return _conn!.Table<GrupoPresupuesto>()
-                    .OrderBy(g => g.Orden)
-                    .ToList();
+                // PB19: sale de la copia en memoria
+                return _grupos.ToList();
             }
             catch (Exception ex)
             {
@@ -244,9 +269,8 @@ namespace MovilAppProject.Repositories
             try
             {
                 Init();
-                return _conn!.Table<Categoria>()
-                    .Where(c => c.Nombre == Categoria.NombreIngreso)
-                    .FirstOrDefault();
+                // PB19: sale de la copia en memoria
+                return _categorias.FirstOrDefault(c => c.Nombre == Categoria.NombreIngreso);
             }
             catch (Exception ex)
             {
