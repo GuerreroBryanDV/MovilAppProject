@@ -98,6 +98,55 @@ namespace MovilAppProject.Services
             }
         }
 
+        // --- PB22: textos de las tarjetas de vRecomendaciones (Figura 8) ---
+
+        // "LUJOS · 12 % DE 10 %"
+        public string EncabezadoIA => Nombre.ToUpper() + " · " + PorcentajeReal.ToString("N0")
+                                      + " % DE " + PorcentajeMeta + " %";
+
+        // "Te pasaste $20,00 este mes." / "Te faltan $150,00 para tu meta." / "Vas bien: ..."
+        public string TextoSituacion
+        {
+            get
+            {
+                if (EsAhorro)
+                {
+                    if (Restante > 0)
+                    {
+                        return "Te faltan $" + Restante.ToString("N2") + " para tu meta de ahorro.";
+                    }
+
+                    return "Cumpliste tu meta de ahorro este mes.";
+                }
+
+                if (EstaExcedido)
+                {
+                    return "Te pasaste $" + Excedido.ToString("N2") + " este mes.";
+                }
+
+                return "Vas bien: te quedan $" + Restante.ToString("N2") + " de margen.";
+            }
+        }
+
+        // Acción de la tarjeta (igual que el mockup)
+        public string TextoAccion
+        {
+            get
+            {
+                if (EsAhorro)
+                {
+                    return "Programar recordatorio";
+                }
+
+                if (GrupoId == GrupoPresupuesto.LujosId)
+                {
+                    return "Ver movimientos";
+                }
+
+                return "Registrar movimiento";
+            }
+        }
+
         // --- Solo para dibujar la barra de vRegla (valores de 0 a 1) ---
         // Ancho de la parte llena (% real) y posición de la marca de la meta.
         // La barra completa equivale a la meta más alta del perfil + 20 %, como en el mockup.

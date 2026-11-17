@@ -15,6 +15,7 @@ public partial class BarraInferior : ContentView
             ("vInicio", pillInicio, iconoInicio, lblInicio),
             ("vRegla", pillRegla, iconoRegla, lblRegla),
             ("vEstadisticas", pillEstadisticas, iconoEstadisticas, lblEstadisticas),
+            ("vRecomendaciones", pillIA, iconoIA, lblIA),
             ("vAjustes", pillAjustes, iconoAjustes, lblAjustes)
         ];
 

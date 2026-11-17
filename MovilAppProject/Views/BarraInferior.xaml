@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <!--
     BarraInferior.xaml
-    Barra de navegación inferior de GastoFácil (Inicio, Regla, Estadísticas, Ajustes).
+    Barra de navegación inferior de GastoFácil (Inicio, Regla, Estadísticas, IA, Ajustes).
     Reemplaza la barra de pestañas nativa del Shell, que en Windows aparece arriba.
     Las páginas la usan con la plantilla "PlantillaConBarra" (App.xaml):
         ControlTemplate="{StaticResource PlantillaConBarra}"
@@ -18,7 +18,7 @@
         <BoxView HeightRequest="1"
                  Color="{StaticResource ColorBorde}"/>
 
-        <Grid ColumnDefinitions="*,*,*,*"
+        <Grid ColumnDefinitions="*,*,*,*,*"
               Padding="8,8,8,10">
 
             <!-- Inicio -->
@@ -96,8 +96,33 @@
                        HorizontalTextAlignment="Center"/>
             </VerticalStackLayout>
 
-            <!-- Ajustes -->
+            <!-- IA: recomendaciones (PB22) -->
             <VerticalStackLayout Grid.Column="3"
+                                 Spacing="2"
+                                 HorizontalOptions="Center"
+                                 SemanticProperties.Description="Ir a Recomendaciones IA">
+                <VerticalStackLayout.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="Item_Tapped" CommandParameter="vRecomendaciones"/>
+                </VerticalStackLayout.GestureRecognizers>
+                <Border x:Name="pillIA"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 16"
+                        BackgroundColor="Transparent"
+                        WidthRequest="60" HeightRequest="32">
+                    <Path x:Name="iconoIA"
+                          Data="M19 9l1.25-2.75L23 5l-2.75-1.25L19 1l-1.25 2.75L15 5l2.75 1.25L19 9zm-7.5.5L9 4 6.5 9.5 1 12l5.5 2.5L9 20l2.5-5.5L17 12l-5.5-2.5zM19 15l-1.25 2.75L15 19l2.75 1.25L19 23l1.25-2.75L23 19l-2.75-1.25L19 15z"
+                          Aspect="Uniform"
+                          WidthRequest="22" HeightRequest="22"
+                          HorizontalOptions="Center" VerticalOptions="Center"/>
+                </Border>
+                <Label x:Name="lblIA"
+                       Text="IA"
+                       FontSize="11"
+                       HorizontalTextAlignment="Center"/>
+            </VerticalStackLayout>
+
+            <!-- Ajustes -->
+            <VerticalStackLayout Grid.Column="4"
                                  Spacing="2"
                                  HorizontalOptions="Center"
                                  SemanticProperties.Description="Ir a Ajustes">

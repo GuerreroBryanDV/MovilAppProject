@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    vRecomendaciones.xaml  (PB22 · Pantalla de recomendaciones IA, RF15)
+    Pantalla "Recomendaciones IA" según el mockup (Figura 8). Pestaña "IA" de la barra inferior.
+    - Una tarjeta por grupo con su % real frente a la meta (datos de ReglaPresupuestoService, PB11).
+    - Recomendaciones del mes generadas por IAService (PB21, Gemini); solo se envían totales (V27).
+    - V24: sin al menos un ingreso y un gasto en el mes, o sin internet, se muestra el mensaje en la vista.
+    - Aviso "Generado por IA, no es asesoría financiera."
+    PB23 (Fernanda): el bloque "Pregúntale a la IA" se agrega en esta misma pantalla (ver comentario abajo).
+-->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:servicios="clr-namespace:MovilAppProject.Services"
+             x:Class="MovilAppProject.Views.vRecomendaciones"
+             ControlTemplate="{StaticResource PlantillaConBarra}"
+             Title="Recomendaciones IA">
+
+    <ScrollView>
+        <VerticalStackLayout Padding="20" Spacing="12">
+
+            <!-- Título: "Recomendaciones IA" y "Basadas en tus movimientos de noviembre y la regla 50/40/10." -->
+            <VerticalStackLayout Spacing="2">
+                <Label Text="Recomendaciones IA"
+                       Style="{StaticResource TituloPagina}"/>
+                <Label x:Name="lblSubtitulo"
+                       Style="{StaticResource TextoSecundario}"/>
+            </VerticalStackLayout>
+
+            <!-- V24: sin al menos un ingreso y un gasto en el mes -->
+            <Border x:Name="brdSinDatos"
+                    Style="{StaticResource Aviso}"
+                    IsVisible="False">
+                <Label x:Name="lblSinDatos"
+                       FontSize="13"
+                       TextColor="{StaticResource Primary}"
+                       HorizontalTextAlignment="Center"/>
+            </Border>
+
+            <!-- ===== Una tarjeta por grupo: "LUJOS · 12 % DE 10 %" ===== -->
+            <VerticalStackLayout x:Name="slGrupos"
+                                 Spacing="12">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate x:DataType="servicios:ResumenGrupo">
+                        <Border Style="{StaticResource Tarjeta}"
+                                Padding="16">
+                            <VerticalStackLayout Spacing="6">
+
+                                <!-- Encabezado con el color del grupo -->
+                                <Label Text="{Binding EncabezadoIA}"
+                                       FontSize="13"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource ColorNecesidades}">
+                                    <Label.Triggers>
+                                        <DataTrigger TargetType="Label"
+                                                     Binding="{Binding Nombre}"
+                                                     Value="Ahorro e inversión">
+                                            <Setter Property="TextColor" Value="{StaticResource ColorAhorro}"/>
+                                        </DataTrigger>
+                                        <DataTrigger TargetType="Label"
+                                                     Binding="{Binding Nombre}"
+                                                     Value="Lujos">
+                                            <Setter Property="TextColor" Value="{StaticResource ColorLujos}"/>
+                                        </DataTrigger>
+                                    </Label.Triggers>
+                                </Label>
+
+                                <!-- Situación del grupo: "Te pasaste $20,00 este mes." -->
+                                <Label Text="{Binding TextoSituacion}"
+                                       FontSize="15"
+                                       TextColor="{StaticResource Primary}"/>
+
+                                <!-- Acción: "Programar recordatorio", "Ver movimientos"... -->
+                                <Label Text="{Binding TextoAccion}"
+                                       FontSize="14"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource ColorAhorro}"
+                                       Margin="0,4,0,0">
+                                    <Label.GestureRecognizers>
+                                        <TapGestureRecognizer Tapped="Accion_Tapped"
+                                                              CommandParameter="{Binding GrupoId}"/>
+                                    </Label.GestureRecognizers>
+                                </Label>
+
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+            <!-- ===== Recomendaciones generadas por la IA (IAService, PB21) ===== -->
+            <Border x:Name="brdIA"
+                    Style="{StaticResource Tarjeta}"
+                    Padding="16"
+                    IsVisible="False">
+                <VerticalStackLayout Spacing="8">
+
+                    <Label Text="RECOMENDACIONES DE LA IA"
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Primary}"/>
+
+                    <!-- Mientras se espera la respuesta (máximo 30 s, V26) -->
+                    <HorizontalStackLayout x:Name="slCargando"
+                                           Spacing="10"
+                                           IsVisible="False">
+                        <ActivityIndicator x:Name="aiCargando"
+                                           Color="{StaticResource Primary}"
+                                           HeightRequest="22"
+                                           WidthRequest="22"/>
+                        <Label Text="Consultando a la IA..."
+                               Style="{StaticResource TextoSecundario}"
+                               VerticalOptions="Center"/>
+                    </HorizontalStackLayout>
+
+                    <!-- Texto de la IA: 3 o 4 recomendaciones, una por línea con "• " -->
+                    <Label x:Name="lblRecomendaciones"
+                           FontSize="15"
+                           LineHeight="1.3"
+                           TextColor="{StaticResource Primary}"
+                           IsVisible="False"/>
+
+                    <!-- V24 (sin conexión), V26 (sin respuesta) y demás mensajes de IAService -->
+                    <Label x:Name="lblErrorIA"
+                           FontSize="13"
+                           TextColor="{StaticResource ColorGasto}"
+                           IsVisible="False"/>
+
+                    <Button x:Name="btnActualizar"
+                            Text="Actualizar recomendaciones"
+                            Clicked="btnActualizar_Clicked"
+                            Style="{StaticResource BotonSecundario}"
+                            Margin="0,4,0,0"/>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- PB23 (Fernanda): aquí va el bloque "Pregúntale a la IA" (Entry + botón Enviar, V25, V26) -->
+
+            <!-- Aviso obligatorio de PB22 -->
+            <Label Text="Generado por IA, no es asesoría financiera."
+                   Style="{StaticResource TextoSecundario}"
+                   FontSize="12"/>
+
+        </VerticalStackLayout>
+    </ScrollView>
+
+</ContentPage>
