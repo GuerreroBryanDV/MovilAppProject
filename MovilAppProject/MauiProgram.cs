@@ -33,6 +33,8 @@ namespace MovilAppProject
 
             // Servicio de recordatorios locales (PB20)
             builder.Services.AddSingleton<RecordatorioService>();
+            // Servicio de conexión con la IA (PB21): la clave se lee de Resources/Raw/.env
+            builder.Services.AddSingleton<IAService>();
 
 #if DEBUG
             builder.Logging.AddDebug();
