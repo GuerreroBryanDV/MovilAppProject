@@ -4,3 +4,5 @@ obj/
 *.user
 /docs
 /.kiro/steering
+# PB21: clave de la IA (nunca se sube; ver Resources/Raw/.env.example)
+.env

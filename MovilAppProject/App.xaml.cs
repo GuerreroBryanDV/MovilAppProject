@@ -16,11 +16,15 @@ namespace MovilAppProject
         // Servicio de recordatorios locales (PB20)
         public static RecordatorioService RecordatorioService { get; private set; } = null!;
 
-        public App(MovimientoRepository repo, ReglaPresupuestoService reglaService, RecordatorioService recordatorioService)
+        // Servicio de la IA disponible para vRecomendaciones (PB21 / PB22 / PB23)
+        public static IAService IAService { get; private set; } = null!;
+
+        public App(MovimientoRepository repo, ReglaPresupuestoService reglaService, RecordatorioService recordatorioService, IAService iaService)
         {
             MovimientoRepo = repo;
             ReglaService = reglaService;
             RecordatorioService = recordatorioService;
+            IAService = iaService;
             // PB04 · RNF09: textos en español, moneda USD y fechas dd/MM/aaaa.
             // La cultura es-EC (Ecuador) usa dólar ($), coma decimal (25,50)
             // y punto de miles ($99.999,99), igual que los mensajes del Backlog.
