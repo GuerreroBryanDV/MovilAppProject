@@ -1,3 +1,4 @@
+using MovilAppProject.Models;
 using MovilAppProject.Services;
 using MovilAppProject.Utils;
 
@@ -7,6 +8,9 @@ namespace MovilAppProject.Views;
 // Todos los cálculos los hace ReglaPresupuestoService (PB11); aquí solo se muestran.
 public partial class vRegla : ContentPage
 {
+    // PB19: número de la última carga pedida (solo se muestra la última si se cambia de mes rápido)
+    int cargaActual = 0;
+
     public vRegla()
     {
         InitializeComponent();
@@ -45,7 +49,18 @@ public partial class vRegla : ContentPage
             btnMesSiguiente.IsEnabled = !FiltroMes.EsMesActual;
             btnMesSiguiente.Opacity = FiltroMes.EsMesActual ? 0.3 : 1;
 
-            ResultadoRegla resultado = App.ReglaService.CalcularRegla(FiltroMes.Mes.Year, FiltroMes.Mes.Month);
+            // PB19 (RNF04): el cálculo lee la base fuera del hilo de la pantalla para no congelarla
+            int carga = ++cargaActual;
+            DateTime mes = FiltroMes.Mes;
+            PerfilPresupuesto perfil = App.ReglaService.ObtenerPerfilActual();
+
+            ResultadoRegla resultado = await Task.Run(() => App.ReglaService.CalcularRegla(mes.Year, mes.Month, perfil));
+
+            // Si mientras tanto se cambió de mes, este resultado ya no sirve
+            if (carga != cargaActual)
+            {
+                return;
+            }
 
             // Título con los porcentajes del perfil elegido en vPorcentajes (PB15): "Regla 60/30/10"
             lblTitulo.Text = "Regla " + resultado.Perfil.PorcentajeNecesidades + "/"

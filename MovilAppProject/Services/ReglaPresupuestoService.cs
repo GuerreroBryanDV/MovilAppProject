@@ -238,12 +238,22 @@ namespace MovilAppProject.Services
         // Calcula por grupo: total gastado, % real sobre ingresos, meta y dinero restante o excedido
         public ResultadoRegla CalcularRegla(int anio, int mes, PerfilPresupuesto perfil)
         {
+            return CalcularRegla(_repo.ListarPorMes(anio, mes), perfil);
+        }
+
+        // PB19: calcula con los movimientos del mes que la pantalla ya leyó,
+        // así vInicio consulta la base una sola vez para saldo, regla y movimientos.
+        public ResultadoRegla CalcularRegla(List<Movimiento> movimientos)
+        {
+            return CalcularRegla(movimientos, ObtenerPerfilActual());
+        }
+
+        public ResultadoRegla CalcularRegla(List<Movimiento> movimientos, PerfilPresupuesto perfil)
+        {
             ResultadoRegla resultado = new() { Perfil = perfil };
 
             try
             {
-                List<Movimiento> movimientos = _repo.ListarPorMes(anio, mes);
-
                 // Ingresos del mes
                 decimal ingresos = 0;
                 foreach (Movimiento m in movimientos)
