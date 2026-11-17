@@ -47,7 +47,13 @@
                                 Grid.Column="1"/>
                     </Grid>
 
-                    <!-- Formulario del PIN: solo aparece al activar el bloqueo -->
+                    <!-- D20: cambiar el PIN (solo con el bloqueo activo; pide el PIN actual) -->
+                    <Button x:Name="btnCambiarPin"
+                            Text="Cambiar PIN"
+                            Clicked="btnCambiarPin_Clicked"
+                            Style="{StaticResource BotonSecundario}"
+                            IsVisible="False"/>
+                    <!-- Formulario del PIN: aparece al activar el bloqueo o al cambiar el PIN -->
                     <VerticalStackLayout x:Name="slPin"
                                          Spacing="8"
                                          IsVisible="False">

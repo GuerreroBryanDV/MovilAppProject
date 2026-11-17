@@ -7,9 +7,11 @@ namespace MovilAppProject.Services
     // Estado del semáforo de un grupo (PB13 · V12)
     public enum EstadoSemaforo
     {
-        Verde = 0,     // gasto <= 100 % de la meta
-        Amarillo = 1,  // gasto > 100 % y <= 150 % de la meta
-        Rojo = 2       // gasto > 150 % de la meta
+        // Necesidades y Lujos (tope): verde <= 100 %, amarillo <= 130 %, rojo > 130 % de la meta
+        // Ahorro e inversión (mínimo): verde >= 100 %, amarillo 75 a 99 %, rojo < 75 % de la meta
+        Verde = 0,
+        Amarillo = 1,
+        Rojo = 2
     }
 
     // Resultado del cálculo de UN grupo de la regla (Necesidades, Ahorro e inversión o Lujos)
@@ -154,9 +156,12 @@ namespace MovilAppProject.Services
         public const string ClaveAhorro = "PorcentajeAhorroInversion";
         public const string ClaveLujos = "PorcentajeLujos";
 
-        // Límites del semáforo (V12)
+        // Límites del semáforo según el documento de requisitos, sección 2.3 (D14).
+        // Tope (Necesidades y Lujos): verde hasta 100 %, amarillo hasta 130 %.
+        // Mínimo (Ahorro e inversión): verde desde 100 %, amarillo desde 75 %.
         const decimal limiteVerde = 100;
-        const decimal limiteAmarillo = 150;
+        const decimal limiteAmarillo = 130;
+        const decimal limiteAhorroAmarillo = 75;
 
         private readonly MovimientoRepository _repo;
 
@@ -301,7 +306,7 @@ namespace MovilAppProject.Services
                         Excedido = gastado > meta ? gastado - meta : 0,
                         PorcentajeDeLaMeta = porcentajeDeLaMeta,
                         Progreso = (double)Math.Min(porcentajeDeLaMeta / 100m, 1m),
-                        Semaforo = CalcularSemaforo(gastado, meta)
+                        Semaforo = CalcularSemaforo(grupo.Id, gastado, meta)
                     });
                 }
 
@@ -318,9 +323,45 @@ namespace MovilAppProject.Services
             return resultado;
         }
 
-        // PB13 · V12: verde <= 100 %, amarillo > 100 % y <= 150 %, rojo > 150 % de la meta en dólares.
+        // PB13 · Semáforo de un grupo (documento de requisitos 2.3, decisión D14).
+        // Ahorro e inversión es un mínimo a alcanzar; Necesidades y Lujos son un tope.
         // Ejemplo con meta de lujos de 100 USD: 90 -> Verde, 120 -> Amarillo, 160 -> Rojo.
-        public static EstadoSemaforo CalcularSemaforo(decimal gastado, decimal meta)
+        public static EstadoSemaforo CalcularSemaforo(int grupoId, decimal gastado, decimal meta)
+        {
+            if (grupoId == GrupoPresupuesto.AhorroInversionId)
+            {
+                return CalcularSemaforoAhorro(gastado, meta);
+            }
+
+            return CalcularSemaforoTope(gastado, meta);
+        }
+
+        // Mínimo: verde con 100 % o más de la meta, amarillo de 75 % a 99 %, rojo con menos de 75 %.
+        // Si la meta es 0 % (perfil personalizado) no hay nada que alcanzar: verde.
+        private static EstadoSemaforo CalcularSemaforoAhorro(decimal gastado, decimal meta)
+        {
+            if (meta <= 0)
+            {
+                return EstadoSemaforo.Verde;
+            }
+
+            decimal porcentaje = PorcentajeDeLaMeta(gastado, meta);
+
+            if (porcentaje >= limiteVerde)
+            {
+                return EstadoSemaforo.Verde;
+            }
+
+            if (porcentaje >= limiteAhorroAmarillo)
+            {
+                return EstadoSemaforo.Amarillo;
+            }
+
+            return EstadoSemaforo.Rojo;
+        }
+
+        // Tope: verde hasta 100 % de la meta, amarillo hasta 130 %, rojo por encima.
+        private static EstadoSemaforo CalcularSemaforoTope(decimal gastado, decimal meta)
         {
             decimal porcentaje = PorcentajeDeLaMeta(gastado, meta);
 

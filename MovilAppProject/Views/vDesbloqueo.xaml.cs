@@ -1,3 +1,5 @@
+using MovilAppProject.Utils;
+
 namespace MovilAppProject.Views;
 
 // PB18 · MAP-18 · Bloqueo con huella, Face ID o PIN
@@ -12,24 +14,40 @@ public partial class vDesbloqueo : ContentPage
     // Errores de PIN acumulados
     int intentosFallidos = 0;
 
-    // V19: "Usar huella" solo se muestra si el dispositivo tiene biometría.
-    // PENDIENTE: la detección y el uso de la huella necesitan un paquete NuGet
-    // (por ejemplo Plugin.Maui.Biometric) que el equipo aún no ha aprobado.
-    // Mientras tanto se considera que no hay biometría y se usa solo el PIN.
+    // V19: "Usar huella" solo se muestra si el dispositivo tiene biometría con datos registrados.
+    // Se detecta con Utils/Biometria (Plugin.Maui.Biometric, D16) al aparecer la pantalla.
     bool hayBiometria = false;
 
     public vDesbloqueo()
     {
         InitializeComponent();
 
-        btnHuella.IsVisible = hayBiometria;
+        // Hasta saber si hay biometría se muestra solo el PIN (siempre disponible)
+        MostrarSoloPin();
+    }
 
-        if (!hayBiometria)
+    // Sin huella: se muestra directamente el ingreso del PIN
+    private void MostrarSoloPin()
+    {
+        btnHuella.IsVisible = false;
+        lblInstruccion.Text = "Ingresa tu PIN para continuar.";
+        btnUsarPin.IsVisible = false;
+        slPin.IsVisible = true;
+    }
+
+    protected override async void OnAppearing()
+    {
+        base.OnAppearing();
+
+        // V19: la huella solo aparece si el dispositivo la tiene y hay una registrada
+        hayBiometria = await Biometria.DisponibleAsync();
+
+        if (hayBiometria)
         {
-            // Sin huella: se muestra directamente el ingreso del PIN
-            lblInstruccion.Text = "Ingresa tu PIN para continuar.";
-            btnUsarPin.IsVisible = false;
-            slPin.IsVisible = true;
+            lblInstruccion.Text = "Desbloquea con tu huella o Face ID";
+            btnHuella.IsVisible = true;
+            btnUsarPin.IsVisible = true;
+            slPin.IsVisible = false;
         }
     }
 
@@ -42,8 +60,14 @@ public partial class vDesbloqueo : ContentPage
     // ===== Usar huella (V19) =====
     private async void btnHuella_Clicked(object sender, EventArgs e)
     {
-        // PENDIENTE: autenticación biométrica (ver comentario de hayBiometria).
-        // Si la huella falla se pide el PIN:
+        // Huella correcta: se cierra esta pantalla y se ve vInicio
+        if (await Biometria.AutenticarAsync("Verifica tu identidad para abrir la app."))
+        {
+            await Navigation.PopModalAsync();
+            return;
+        }
+
+        // V19: si la huella falla se pide el PIN
         await DisplayAlertAsync("Error", "No se pudo verificar tu huella. Usa tu PIN.", "Aceptar");
         MostrarPin();
     }
@@ -82,7 +106,8 @@ public partial class vDesbloqueo : ContentPage
                 return;
             }
 
-            string pinGuardado = Preferences.Get(vAjustes.ClavePin, "");
+            // El PIN está en SecureStorage (RNF05)
+            string pinGuardado = await Utils.PinStorage.ObtenerAsync() ?? "";
 
             // PIN correcto: se cierra esta pantalla y se ve vInicio
             if (pin == pinGuardado)

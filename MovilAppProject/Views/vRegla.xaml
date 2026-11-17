@@ -22,10 +22,22 @@
                        Text="Regla 50/40/10"
                        Style="{StaticResource TituloPagina}"
                        Grid.Column="0"/>
-                <Label x:Name="lblMes"
-                       Style="{StaticResource TextoSecundario}"
-                       VerticalOptions="Center"
-                       Grid.Column="1"/>
+                <!-- PB14: selector de mes, el mismo que en vInicio -->
+                <HorizontalStackLayout Spacing="2"
+                                       VerticalOptions="Center"
+                                       Grid.Column="1">
+                    <Button x:Name="btnMesAnterior"
+                            Text="‹"
+                            Clicked="btnMesAnterior_Clicked"
+                            Style="{StaticResource BotonMes}"/>
+                    <Label x:Name="lblMes"
+                           Style="{StaticResource TextoSecundario}"
+                           VerticalOptions="Center"/>
+                    <Button x:Name="btnMesSiguiente"
+                            Text="›"
+                            Clicked="btnMesSiguiente_Clicked"
+                            Style="{StaticResource BotonMes}"/>
+                </HorizontalStackLayout>
             </Grid>
 
             <!-- "Ingresos del mes: $1.000,00" -->

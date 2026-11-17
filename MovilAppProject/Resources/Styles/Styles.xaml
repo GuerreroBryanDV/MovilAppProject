@@ -424,6 +424,17 @@
         <Setter Property="IconColor" Value="{AppThemeBinding Light={StaticResource Gray200}, Dark={StaticResource White}}" />
     </Style>
 
+    <!-- PB14: botones ‹ › del selector de mes (vInicio y vRegla) -->
+    <Style x:Key="BotonMes" TargetType="Button">
+        <Setter Property="BackgroundColor" Value="Transparent"/>
+        <Setter Property="TextColor" Value="{StaticResource Primary}"/>
+        <Setter Property="FontSize" Value="20"/>
+        <Setter Property="FontAttributes" Value="Bold"/>
+        <Setter Property="Padding" Value="0"/>
+        <Setter Property="WidthRequest" Value="32"/>
+        <Setter Property="HeightRequest" Value="32"/>
+        <Setter Property="CornerRadius" Value="16"/>
+    </Style>
     <Style TargetType="TabbedPage">
         <Setter Property="BarBackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource Gray950}}" />
         <Setter Property="BarTextColor" Value="{AppThemeBinding Light={StaticResource Magenta}, Dark={StaticResource White}}" />
