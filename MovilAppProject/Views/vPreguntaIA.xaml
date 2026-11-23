@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    vPreguntaIA.xaml  (PB23 · MAP-23 · Preguntar a la IA)
+    Componente "Pregúntale a la IA" del mockup de Recomendaciones IA.
+    Es un ContentView: se agrega dentro de vRecomendaciones (PB22) con una línea:
+        <views:vPreguntaIA/>
+    V25: pregunta de 5 a 200 caracteres.
+    V26: el botón Enviar se deshabilita mientras espera (IAService corta a los 30 s).
+    La respuesta viene de App.IAService.PreguntarAsync (PB21).
+-->
+<ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MovilAppProject.Views.vPreguntaIA">
+
+    <VerticalStackLayout Spacing="8">
+
+        <Label Text="Pregúntale a la IA"
+               Style="{StaticResource EtiquetaCampo}"
+               FontSize="15"/>
+
+        <!-- Pregunta + botón Enviar -->
+        <Border Style="{StaticResource Tarjeta}"
+                Padding="10,4">
+            <Grid ColumnSpacing="8">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+
+                <Entry x:Name="txtPregunta"
+                       Placeholder="¿Cómo puedo gastar menos en comida?"
+                       MaxLength="200"
+                       Completed="btnEnviar_Clicked"
+                       Grid.Column="0"/>
+                <Button x:Name="btnEnviar"
+                        Text="Enviar"
+                        Clicked="btnEnviar_Clicked"
+                        Style="{StaticResource BotonPrimario}"
+                        HeightRequest="40"
+                        Padding="14,0"
+                        VerticalOptions="Center"
+                        Grid.Column="1"/>
+            </Grid>
+        </Border>
+
+        <!-- Mientras espera la respuesta -->
+        <HorizontalStackLayout x:Name="slEsperando"
+                               Spacing="8"
+                               IsVisible="False">
+            <ActivityIndicator IsRunning="True"
+                               Color="{StaticResource Primary}"
+                               HeightRequest="20"
+                               WidthRequest="20"/>
+            <Label Text="Consultando a la IA..."
+                   Style="{StaticResource TextoSecundario}"
+                   VerticalOptions="Center"/>
+        </HorizontalStackLayout>
+
+        <!-- Respuesta de la IA (en la misma pantalla) -->
+        <Border x:Name="brdRespuesta"
+                Style="{StaticResource Tarjeta}"
+                IsVisible="False">
+            <VerticalStackLayout Spacing="4">
+                <Label x:Name="lblPreguntaHecha"
+                       Style="{StaticResource EtiquetaCampo}"/>
+                <Label x:Name="lblRespuesta"
+                       FontSize="14"
+                       TextColor="{StaticResource Primary}"/>
+            </VerticalStackLayout>
+        </Border>
+
+    </VerticalStackLayout>
+
+</ContentView>
