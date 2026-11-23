@@ -133,7 +133,8 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- PB23 (Fernanda): aquí va el bloque "Pregúntale a la IA" (Entry + botón Enviar, V25, V26) -->
+            <!-- PB23 (Fernanda): bloque "Pregúntale a la IA" (Entry + botón Enviar, V25, V26) -->
+            <views:vPreguntaIA xmlns:views="clr-namespace:MovilAppProject.Views"/>
 
             <!-- Aviso obligatorio de PB22 -->
             <Label Text="Generado por IA, no es asesoría financiera."
