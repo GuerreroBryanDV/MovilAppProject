@@ -18,7 +18,33 @@
                Style="{StaticResource EtiquetaCampo}"
                FontSize="15"/>
 
-        <!-- Pregunta + botón Enviar -->
+        <!-- Respuesta de la IA (arriba, como en un chat) -->
+        <Border x:Name="brdRespuesta"
+                Style="{StaticResource Tarjeta}"
+                IsVisible="False">
+            <VerticalStackLayout Spacing="4">
+                <Label x:Name="lblPreguntaHecha"
+                       Style="{StaticResource EtiquetaCampo}"/>
+                <Label x:Name="lblRespuesta"
+                       FontSize="14"
+                       TextColor="{StaticResource Primary}"/>
+            </VerticalStackLayout>
+        </Border>
+
+        <!-- Mientras espera la respuesta -->
+        <HorizontalStackLayout x:Name="slEsperando"
+                               Spacing="8"
+                               IsVisible="False">
+            <ActivityIndicator IsRunning="True"
+                               Color="{StaticResource Primary}"
+                               HeightRequest="20"
+                               WidthRequest="20"/>
+            <Label Text="Consultando a la IA..."
+                   Style="{StaticResource TextoSecundario}"
+                   VerticalOptions="Center"/>
+        </HorizontalStackLayout>
+
+        <!-- Pregunta + botón Enviar (abajo, para la siguiente pregunta) -->
         <Border Style="{StaticResource Tarjeta}"
                 Padding="10,4">
             <Grid ColumnSpacing="8">
@@ -41,32 +67,6 @@
                         VerticalOptions="Center"
                         Grid.Column="1"/>
             </Grid>
-        </Border>
-
-        <!-- Mientras espera la respuesta -->
-        <HorizontalStackLayout x:Name="slEsperando"
-                               Spacing="8"
-                               IsVisible="False">
-            <ActivityIndicator IsRunning="True"
-                               Color="{StaticResource Primary}"
-                               HeightRequest="20"
-                               WidthRequest="20"/>
-            <Label Text="Consultando a la IA..."
-                   Style="{StaticResource TextoSecundario}"
-                   VerticalOptions="Center"/>
-        </HorizontalStackLayout>
-
-        <!-- Respuesta de la IA (en la misma pantalla) -->
-        <Border x:Name="brdRespuesta"
-                Style="{StaticResource Tarjeta}"
-                IsVisible="False">
-            <VerticalStackLayout Spacing="4">
-                <Label x:Name="lblPreguntaHecha"
-                       Style="{StaticResource EtiquetaCampo}"/>
-                <Label x:Name="lblRespuesta"
-                       FontSize="14"
-                       TextColor="{StaticResource Primary}"/>
-            </VerticalStackLayout>
         </Border>
 
     </VerticalStackLayout>
