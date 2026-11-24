@@ -28,7 +28,7 @@
 		<MauiXamlInflator>SourceGen</MauiXamlInflator>
 
 		<!-- Display name -->
-		<ApplicationTitle>MovilAppProject</ApplicationTitle>
+		<ApplicationTitle>GastoFácil</ApplicationTitle>
 
 		<!-- App Identifier -->
 		<ApplicationId>com.companyname.movilappproject</ApplicationId>
