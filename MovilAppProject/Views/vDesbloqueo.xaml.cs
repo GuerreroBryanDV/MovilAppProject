@@ -89,6 +89,14 @@ public partial class vDesbloqueo : ContentPage
         string detalle = string.IsNullOrWhiteSpace(Biometria.UltimoError) ? "" : " (" + Biometria.UltimoError + ")";
         await DisplayAlertAsync("Error", "No se pudo verificar tu identidad" + detalle + ". Usa tu PIN o contraseña.", "Aceptar");
         MostrarPin();
+        // Sin huellas registradas el botón no sirve: se oculta y se explica el motivo
+        if (Biometria.UltimoError == "no hay huellas registradas en el dispositivo")
+        {
+            hayBiometria = false;
+            btnHuella.IsVisible = false;
+            lblAvisoBiometria.Text = "No hay huella ni rostro registrado. Regístralo en los ajustes de seguridad del teléfono.";
+            lblAvisoBiometria.IsVisible = true;
+        }
     }
 
     private void btnUsarPin_Clicked(object sender, EventArgs e)

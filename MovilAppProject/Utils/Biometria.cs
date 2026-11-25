@@ -20,17 +20,22 @@ namespace MovilAppProject.Utils
             {
                 BiometricHwStatus estado = await BiometricAuthenticationService.Default
                     .GetAuthenticationStatusAsync(AuthenticatorStrength.Strong);
-                if (estado == BiometricHwStatus.Success)
+                if (estado == BiometricHwStatus.Success && await HayRegistradaAsync())
                 {
                     _fuerza = AuthenticatorStrength.Strong;
                     return (true, "");
                 }
                 BiometricHwStatus debil = await BiometricAuthenticationService.Default
                     .GetAuthenticationStatusAsync(AuthenticatorStrength.Weak);
-                if (debil == BiometricHwStatus.Success)
+                if (debil == BiometricHwStatus.Success && await HayRegistradaAsync())
                 {
                     _fuerza = AuthenticatorStrength.Weak;
                     return (true, "");
+                }
+                if (estado == BiometricHwStatus.Success || debil == BiometricHwStatus.Success)
+                {
+                    // El sensor responde pero no hay ninguna huella o rostro registrado
+                    return (false, Motivo(BiometricHwStatus.NotEnrolled));
                 }
                 Debug.WriteLine("Biometria: Strong=" + estado + ", Weak=" + debil);
                 return (false, Motivo(estado == BiometricHwStatus.NoHardware ? debil : estado));
@@ -39,6 +44,22 @@ namespace MovilAppProject.Utils
             {
                 Debug.WriteLine("Biometria: " + ex);
                 return (false, "No se pudo consultar la biometría del dispositivo.");
+            }
+        }
+
+        // Algunos dispositivos (como el emulador) dicen que el sensor está listo aunque no haya
+        // ninguna huella o rostro registrado; por eso se confirma con la lista de registrados.
+        private static async Task<bool> HayRegistradaAsync()
+        {
+            try
+            {
+                BiometricType[] tipos = await BiometricAuthenticationService.Default.GetEnrolledBiometricTypesAsync();
+                return tipos != null && tipos.Any(t => t != BiometricType.None);
+            }
+            catch
+            {
+                // Si no se puede consultar la lista, se confía en el estado del sensor
+                return true;
             }
         }
 
@@ -82,6 +103,10 @@ namespace MovilAppProject.Utils
                 if (respuesta.Status != BiometricResponseStatus.Success)
                 {
                     UltimoError = respuesta.ErrorMsg ?? string.Empty;
+                    if (UltimoError.Contains("enrolled", StringComparison.OrdinalIgnoreCase))
+                    {
+                        UltimoError = "no hay huellas registradas en el dispositivo";
+                    }
                     Debug.WriteLine("Biometria: falla " + UltimoError);
                 }
                 return respuesta.Status == BiometricResponseStatus.Success;
