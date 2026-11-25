@@ -17,9 +17,16 @@ namespace MovilAppProject
 
         // Al volver de segundo plano se revisa si pasó el tiempo de inactividad.
         // Se usa el ciclo de vida de Android porque es más fiable que Window.Resumed.
+        protected override void OnPause()
+        {
+            MovilAppProject.Utils.Sesion.EnPrimerPlano = false;
+            base.OnPause();
+        }
+
         protected override void OnResume()
         {
             base.OnResume();
+            MovilAppProject.Utils.Sesion.EnPrimerPlano = true;
             MainThread.BeginInvokeOnMainThread(() =>
             {
                 (Microsoft.Maui.Controls.Application.Current?.Windows.FirstOrDefault()?.Page as AppShell)?.AlReanudar();

@@ -41,22 +41,42 @@ namespace MovilAppProject
             RevisarInactividad();
         }
 
+        // true mientras se está abriendo la pantalla de login (evita abrirla dos veces)
+        bool abriendoLogin = false;
+
         private async void RevisarInactividad()
         {
+            // Pasó el tiempo: la sesión se cierra aunque la app esté en segundo plano
             if (Sesion.Expirada())
             {
                 Sesion.Bloquear();
+            }
+            // Android no deja mostrar pantallas en segundo plano: el login se abre al volver (OnResume)
+            if (!Sesion.EnPrimerPlano)
+            {
+                return;
+            }
+            // Sesión cerrada de un usuario que ya había entrado: se pide el login otra vez
+            if (!Sesion.Autenticado && Sesion.UsuarioId != 0)
+            {
                 await ExigirLoginAsync();
             }
+        }
+
+        // true si el login o el registro ya están en pantalla
+        private bool LoginVisible()
+        {
+            return Navigation.ModalStack.Any(p => p is Views.vDesbloqueo || p is Views.vRegistro);
         }
 
         // Muestra el login (o el registro si todavía no hay usuario) encima de todo
         private async Task ExigirLoginAsync()
         {
-            if (Sesion.Autenticado || Sesion.BloqueoVisible)
+            if (Sesion.Autenticado || abriendoLogin || LoginVisible())
             {
                 return;
             }
+            abriendoLogin = true;
             Sesion.BloqueoVisible = true;
             try
             {
@@ -64,11 +84,15 @@ namespace MovilAppProject
                 Page pagina = hayUsuario ? new Views.vDesbloqueo() : new Views.vRegistro();
                 await Navigation.PushModalAsync(pagina, false);
             }
-            catch
+            catch (Exception ex)
             {
+                // Si no se pudo abrir, se vuelve a intentar en la siguiente revisión
                 Sesion.BloqueoVisible = false;
-                throw;
+                System.Diagnostics.Debug.WriteLine("Login: " + ex);
             }
-        }
-    }
+            finally
+            {
+                abriendoLogin = false;
+            }
+        }    }
 }

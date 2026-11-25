@@ -16,6 +16,9 @@ namespace MovilAppProject.Utils
         // true mientras se muestra la pantalla de login o de registro (evita abrirla dos veces)
         public static bool BloqueoVisible { get; set; }
 
+        // false mientras la app está en segundo plano (lo actualiza MainActivity en Android)
+        public static bool EnPrimerPlano { get; set; } = true;
+
         private static DateTime _ultimaActividad = DateTime.Now;
 
         public static void Iniciar(int usuarioId, string nombre)
