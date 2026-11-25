@@ -30,6 +30,10 @@ public partial class vInicio : ContentPage
     {
         base.OnAppearing();
         CargarDatos();
+
+        // PB25: respalda en MySQL lo que quedó pendiente (por ejemplo, si XAMPP
+        // estaba apagado). Va en segundo plano: no bloquea la pantalla.
+        _ = ServicioWeb.SincronizarAsync();
     }
 
     // ===== PB14: mes anterior =====
