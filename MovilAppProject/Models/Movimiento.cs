@@ -59,7 +59,7 @@ namespace MovilAppProject.Models
         [Indexed]
         public int UsuarioId { get; set; }
 
-        // --- Solo para mostrar en pantalla (no se guardan en la base) ---
+        // Solo para mostrar en pantalla (no se guardan en la base)
         [Ignore]
         public string NombreCategoria { get; set; } = string.Empty;
 

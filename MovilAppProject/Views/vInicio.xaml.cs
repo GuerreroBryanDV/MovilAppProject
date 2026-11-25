@@ -4,20 +4,17 @@ using MovilAppProject.Utils;
 
 namespace MovilAppProject.Views;
 
-// Pantalla principal de GastoFácil (según el mockup).
-// PB07: lee los movimientos del mes desde SQLite (App.MovimientoRepo).
-// PB14: filtro por mes con los botones ‹ › (no se permiten meses futuros, V10).
+// Pantalla principal (PB07, PB08, PB14).
 public partial class vInicio : ContentPage
 {
     // Cuántos movimientos se muestran en "Últimos movimientos"
     const int maximoMovimientos = 5;
 
-    // PB19: número de la última carga pedida. Si el usuario cambia de mes rápido,
+    // Número de la última carga pedida. Si el usuario cambia de mes rápido,
     // solo se muestra la última y no una anterior que terminó tarde.
     int cargaActual = 0;
 
-    // PB14: el mes seleccionado vive en FiltroMes para compartirlo con vRegla.
-    // Las metas de la regla ya no están aquí: salen del perfil de PB15 vía ReglaPresupuestoService.
+    // El mes seleccionado vive en FiltroMes para compartirlo con vRegla.
 
     public vInicio()
     {
@@ -31,26 +28,24 @@ public partial class vInicio : ContentPage
         base.OnAppearing();
         CargarDatos();
 
-        // PB25: respalda en MySQL lo que quedó pendiente (por ejemplo, si XAMPP
+        // Respalda en MySQL lo que quedó pendiente (por ejemplo, si XAMPP
         // estaba apagado). Va en segundo plano: no bloquea la pantalla.
         _ = ServicioWeb.SincronizarAsync();
     }
 
-    // ===== PB14: mes anterior =====
     private void btnMesAnterior_Clicked(object sender, EventArgs e)
     {
         FiltroMes.Anterior();
         CargarDatos();
     }
 
-    // ===== PB14: mes siguiente (nunca pasa del mes actual, V10) =====
+    // Mes siguiente (nunca pasa del mes actual, V10)
     private void btnMesSiguiente_Clicked(object sender, EventArgs e)
     {
         FiltroMes.Siguiente();
         CargarDatos();
     }
 
-    // Abre la pantalla "Nuevo movimiento"
     private async void btnNuevo_Clicked(object sender, EventArgs e)
     {
         try
@@ -63,12 +58,12 @@ public partial class vInicio : ContentPage
         }
     }
 
-    // ===== Carga todos los datos de la pantalla =====
+    // Carga todos los datos de la pantalla
     private async void CargarDatos()
     {
         try
         {
-            // PB14: mes seleccionado: "Noviembre 2026"
+            // Mes seleccionado: "Noviembre 2026"
             lblMes.Text = FiltroMes.Texto();
 
             // V10: el botón › se deshabilita en el mes actual (no hay meses futuros)
@@ -82,7 +77,7 @@ public partial class vInicio : ContentPage
                 btnMesSiguiente.Opacity = 0.3;
             }
 
-            // PB19 (RNF04): la base se consulta una sola vez y fuera del hilo de la pantalla,
+            // La base se consulta una sola vez y fuera del hilo de la pantalla,
             // así la vista no se congela con muchos movimientos. De esa consulta salen
             // saldo, regla y últimos movimientos.
             int carga = ++cargaActual;
@@ -101,7 +96,6 @@ public partial class vInicio : ContentPage
                 return;
             }
 
-            // Totales
             decimal ingresos = 0;
             decimal egresos = 0;
 
@@ -117,7 +111,7 @@ public partial class vInicio : ContentPage
                 }
             }
 
-            // PB07: saldo = ingresos − gastos del mes (en rojo si es negativo)
+            // Saldo = ingresos − gastos del mes (en rojo si es negativo)
             // El saldo es acumulado: incluye lo que sobró de los meses anteriores
             decimal saldo = await Task.Run(() => App.MovimientoRepo.ObtenerSaldoAcumuladoHasta(mes.Year, mes.Month));
             lblSaldo.Text = FormatoMonto(saldo);
@@ -143,8 +137,7 @@ public partial class vInicio : ContentPage
         }
     }
 
-    // ===== Resumen de la regla =====
-    // Todo sale de ReglaPresupuestoService (PB11) con el perfil elegido en PB15,
+    // Todo sale de ReglaPresupuestoService con el perfil elegido,
     // así vInicio y vRegla muestran siempre los mismos números y el mismo semáforo.
     private void MostrarRegla(ResultadoRegla resultado)
     {
@@ -187,7 +180,6 @@ public partial class vInicio : ContentPage
         lblEnMeta.Text = resultado.GruposEnMeta + " de " + resultado.Grupos.Count + " en meta";
     }
 
-    // ===== Recomendación IA =====
     // Se guarda la última respuesta: si los datos del mes no cambiaron, se reutiliza
     // y no se vuelve a consultar a la IA cada vez que se abre la pantalla.
     static string ultimaClaveIA = "";
@@ -232,7 +224,6 @@ public partial class vInicio : ContentPage
             lblRecomendacion.Text = respuesta.Mensaje;
         }
     }
-    // ===== Últimos movimientos (PB08) =====
     private void MostrarMovimientos(List<Movimiento> movimientos)
     {
         slMovimientos.Children.Clear();
@@ -260,7 +251,7 @@ public partial class vInicio : ContentPage
         }
     }
 
-    // Crea una fila como en el mockup (al tocarla se edita, PB09):
+    // Crea una fila (al tocarla se edita):
     //   Almuerzo                    -$4,50
     //   Comida · Necesidades · 07/11/2026
     private Border CrearFila(Movimiento m)
@@ -333,7 +324,7 @@ public partial class vInicio : ContentPage
             Margin = new Thickness(-8, 0)
         };
 
-        // PB09: al tocar la fila se sombrea y se abre el movimiento para editarlo
+        // Al tocar la fila se sombrea y se abre el movimiento para editarlo
         TapGestureRecognizer toque = new TapGestureRecognizer();
         toque.Tapped += async (sender, e) =>
         {

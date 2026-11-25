@@ -1,9 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!--
-    vRegistro.xaml
-    Primer uso de la app: crea al único usuario de este dispositivo (usuario, contraseña y PIN).
-    Después la app pide login (contraseña, PIN o huella/rostro) al abrirla y tras un tiempo sin actividad.
--->
+<!-- Registro del único usuario del dispositivo (PB27) -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MovilAppProject.Views.vRegistro"

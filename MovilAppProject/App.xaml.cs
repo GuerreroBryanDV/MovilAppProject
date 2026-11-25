@@ -4,19 +4,18 @@ using MovilAppProject.Services;
 
 namespace MovilAppProject
 {
-    // Clase principal de la aplicación: es lo primero que se ejecuta.
     public partial class App : Application
     {
-        // Repositorio de SQLite disponible para todas las vistas (PB03 / PB06)
+        // Repositorio de SQLite disponible para todas las vistas
         public static MovimientoRepository MovimientoRepo { get; private set; } = null!;
 
-        // Servicio de la regla disponible para todas las vistas (PB11 / PB13)
+        // Servicio de la regla disponible para todas las vistas
         public static ReglaPresupuestoService ReglaService { get; private set; } = null!;
 
-        // Servicio de recordatorios locales (PB20)
+        // Servicio de recordatorios locales
         public static RecordatorioService RecordatorioService { get; private set; } = null!;
 
-        // Servicio de la IA disponible para vRecomendaciones (PB21 / PB22 / PB23)
+        // Servicio de la IA disponible para vRecomendaciones
         public static IAService IAService { get; private set; } = null!;
 
         public App(MovimientoRepository repo, ReglaPresupuestoService reglaService, RecordatorioService recordatorioService, IAService iaService)
@@ -25,7 +24,7 @@ namespace MovilAppProject
             ReglaService = reglaService;
             RecordatorioService = recordatorioService;
             IAService = iaService;
-            // PB04 · RNF09: textos en español, moneda USD y fechas dd/MM/aaaa.
+            // Textos en español, moneda USD y fechas dd/MM/aaaa.
             // La cultura es-EC (Ecuador) usa dólar ($), coma decimal (25,50)
             // y punto de miles ($99.999,99), igual que los mensajes del Backlog.
             var cultura = new CultureInfo("es-EC");
@@ -35,7 +34,7 @@ namespace MovilAppProject
             CultureInfo.CurrentCulture = cultura;
             CultureInfo.CurrentUICulture = cultura;
 
-            // Los mockups están en tema claro: se fuerza para que el modo
+            // La app usa tema claro: se fuerza para que el modo
             // oscuro del teléfono no cambie los colores.
             UserAppTheme = AppTheme.Light;
 
@@ -44,7 +43,7 @@ namespace MovilAppProject
         }
 
         // Crea la ventana principal: AppShell con las pestañas de navegación.
-        // Se arranca en el Shell (PB04) y no en una sola vista para que vInicio sea la
+        // Se arranca en el Shell y no en una sola vista para que vInicio sea la
         // pantalla principal. Entre pantallas se sigue usando Navigation.PushAsync/PopAsync.
         protected override Window CreateWindow(IActivationState? activationState)
         {

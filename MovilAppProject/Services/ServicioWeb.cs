@@ -6,14 +6,12 @@ using Newtonsoft.Json;
 
 namespace MovilAppProject.Services
 {
-    // PB25 · MAP-25 · Respaldo de la base SQLite en MySQL (XAMPP + PHP).
-    // Mismo patrón que la Semana 6 (vEstudiante / vAgregarEstudiante / vActualizarEliminar):
+    // Respaldo de la base SQLite en el servicio web PHP + MySQL (PB25).
     //   GET    -> HttpClient.GetStringAsync + JsonConvert
     //   POST   -> WebClient.UploadValues(url, "POST", parametros)
     //   PUT    -> WebClient.UploadValues(url + "?codigo=...", "PUT", parametros)
     //   DELETE -> WebClient.UploadValues(url + "?codigo=...", "DELETE", parametros)
-    // SQLite sigue siendo la base principal: si XAMPP está apagado o no hay red,
-    // la app funciona igual y lo pendiente se envía en la siguiente sincronización.
+    // SQLite sigue siendo la base principal: si XAMPP está apagado, lo pendiente se envía en la siguiente sincronización.
     public static class ServicioWeb
     {
         // IP de la computadora que tiene XAMPP, para probar en un celular Android real.
@@ -38,7 +36,7 @@ namespace MovilAppProject.Services
 
         private static string Url => Servidor + "movimiento_ws.php";
 
-        // PB27: usuarios del login (alta e inactivación = borrado lógico)
+        // Usuarios del login (alta e inactivación = borrado lógico)
         private static string UrlUsuarios => Servidor + "usuario_ws.php";
 
         private static readonly HttpClient cliente = new() { Timeout = TimeSpan.FromSeconds(5) };
@@ -49,7 +47,7 @@ namespace MovilAppProject.Services
         // Último resultado (para mostrar o depurar)
         public static string StatusMessage { get; private set; } = string.Empty;
 
-        // ===== Envíos de una operación (se llaman desde vMovimiento) =====
+        // Envíos de una operación (se llaman desde vMovimiento)
 
         public static Task AgregarAsync(Movimiento m) =>
             EjecutarAsync(() => { EnviarDueno(m); Enviar(m, "POST", UidDe(m)); });
@@ -60,7 +58,7 @@ namespace MovilAppProject.Services
         public static Task EliminarAsync(int id) =>
             EjecutarAsync(() => { Eliminar(id); });
 
-        // ===== Sincronización completa (se llama al abrir vInicio) =====
+        // Sincronización completa (se llama al abrir vInicio)
         // Deja MySQL igual que SQLite: inserta lo que falta, actualiza lo que
         // cambió y borra lo que ya no existe en el teléfono.
         public static async Task SincronizarAsync()
@@ -69,7 +67,7 @@ namespace MovilAppProject.Services
             try
             {
                 List<Movimiento> locales = App.MovimientoRepo.ListarTodos();
-                // PB27: uid de cada usuario local (los movimientos se envían con el uid de su dueño)
+                // Uid de cada usuario local (los movimientos se envían con el uid de su dueño)
                 List<Usuario> usuarios = App.MovimientoRepo.ListarUsuarios();
                 Dictionary<int, string> uidPorId = usuarios.ToDictionary(u => u.Id, u => u.Uid);
                 List<MovimientoWS>? servidor = await ListarServidorAsync();
@@ -83,7 +81,7 @@ namespace MovilAppProject.Services
 
                 await Task.Run(() =>
                 {
-                    // PB27: primero los usuarios (activos e inactivos), porque los movimientos
+                    // Primero los usuarios (activos e inactivos), porque los movimientos
                     // apuntan a ellos. Una cuenta inactivada queda en el servidor con activo = 0.
                     foreach (Usuario u in usuarios)
                         EnviarUsuario(u);
@@ -132,8 +130,6 @@ namespace MovilAppProject.Services
             }
         }
 
-        // ---------------- Auxiliares ----------------
-
         private static async Task EjecutarAsync(Action accion)
         {
             await candado.WaitAsync();
@@ -161,12 +157,12 @@ namespace MovilAppProject.Services
             parametros.Add("categoria_id", m.CategoriaId.ToString());
             parametros.Add("fecha", m.Fecha.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
             parametros.Add("nota", m.Nota ?? "");
-            // PB27: vacío = movimiento anterior al login (en MySQL queda NULL)
+            // Vacío = movimiento anterior al login (en MySQL queda NULL)
             parametros.Add("usuario_uid", uid);
             return parametros;
         }
 
-#pragma warning disable SYSLIB0014 // WebClient: es el que se usó en la Semana 6
+#pragma warning disable SYSLIB0014 // WebClient está obsoleto, pero se usa para POST, PUT y DELETE
         // Los errores (XAMPP apagado, sin red) se atrapan aquí mismo para que
         // Visual Studio no detenga la app y para que SQLite siga funcionando.
         private static bool Enviar(Movimiento m, string metodo, string uid)
@@ -213,7 +209,7 @@ namespace MovilAppProject.Services
                 return false;
             }
         }
-        // PB27: POST del usuario (el servidor inserta o actualiza por uid).
+        // POST del usuario (el servidor inserta o actualiza por uid).
         // No se envían la contraseña ni el PIN: se quedan cifrados en el teléfono.
         private static bool EnviarUsuario(Usuario u)
         {
@@ -237,13 +233,13 @@ namespace MovilAppProject.Services
         }
 #pragma warning restore SYSLIB0014
 
-        // PB27: uid del dueño de un movimiento ("" si es anterior al login)
+        // Uid del dueño de un movimiento ("" si es anterior al login)
         private static string UidDe(Movimiento m)
         {
             return App.MovimientoRepo.ListarUsuarios().FirstOrDefault(u => u.Id == m.UsuarioId)?.Uid ?? "";
         }
 
-        // PB27: asegura que el dueño exista en el servidor antes de enviar su movimiento
+        // Asegura que el dueño exista en el servidor antes de enviar su movimiento
         private static void EnviarDueno(Movimiento m)
         {
             Usuario? dueno = App.MovimientoRepo.ListarUsuarios().FirstOrDefault(u => u.Id == m.UsuarioId);

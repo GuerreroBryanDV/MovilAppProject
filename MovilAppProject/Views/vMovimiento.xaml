@@ -1,11 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<!--
-    vMovimiento.xaml  (PB05 · MAP-5 · HU1 Registrar gasto)
-    Pantalla "Nuevo movimiento" según el mockup.
-    Se abre desde el botón "+ Nuevo" de vInicio.
-    PB09: al tocar un movimiento en vInicio se abre en modo "Editar movimiento".
-    PB10: en modo edición aparece el botón "Eliminar movimiento".
--->
+<!-- Nuevo movimiento o edición de uno existente (PB05, PB09, PB10) -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MovilAppProject.Views.vMovimiento"
@@ -111,7 +105,7 @@
                     Style="{StaticResource BotonPrimario}"
                     Margin="0,10,0,0"/>
 
-            <!-- PB10: solo visible al editar un movimiento -->
+            <!-- Solo visible al editar un movimiento -->
             <Button x:Name="btnEliminar"
                     Text="Eliminar movimiento"
                     Clicked="btnEliminar_Clicked"

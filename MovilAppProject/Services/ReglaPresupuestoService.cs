@@ -4,7 +4,7 @@ using MovilAppProject.Repositories;
 
 namespace MovilAppProject.Services
 {
-    // Estado del semáforo de un grupo (PB13 · V12)
+    // Estado del semáforo de un grupo (V12)
     public enum EstadoSemaforo
     {
         // Necesidades y Lujos (tope): verde <= 100 %, amarillo <= 130 %, rojo > 130 % de la meta
@@ -39,10 +39,10 @@ namespace MovilAppProject.Services
         // Valor de 0 a 1 para un ProgressBar (no pasa de 1)
         public double Progreso { get; set; }
 
-        // PB13 · V12: color del semáforo
+        // Color del semáforo (V12)
         public EstadoSemaforo Semaforo { get; set; }
 
-        // Texto de la etiqueta del semáforo (igual que el mockup de vRegla)
+        // Texto de la etiqueta del semáforo
         public string TextoSemaforo
         {
             get
@@ -64,7 +64,7 @@ namespace MovilAppProject.Services
         // Ahorro e inversión es un mínimo a alcanzar; Necesidades y Lujos son un tope máximo
         public bool EsAhorro => GrupoId == GrupoPresupuesto.AhorroInversionId;
 
-        // Línea del mockup: "de 50 % · quedan $100,00 · tope máximo"
+        // Formato: "de 50 % · quedan $100,00 · tope máximo"
         public string TextoDetalle
         {
             get
@@ -98,7 +98,7 @@ namespace MovilAppProject.Services
             }
         }
 
-        // --- PB22: textos de las tarjetas de vRecomendaciones (Figura 8) ---
+        // Textos de las tarjetas de vRecomendaciones
 
         // "LUJOS · 12 % DE 10 %"
         public string EncabezadoIA => Nombre.ToUpper() + " · " + PorcentajeReal.ToString("N0")
@@ -128,7 +128,7 @@ namespace MovilAppProject.Services
             }
         }
 
-        // Acción de la tarjeta (igual que el mockup)
+        // Acción de la tarjeta
         public string TextoAccion
         {
             get
@@ -147,9 +147,9 @@ namespace MovilAppProject.Services
             }
         }
 
-        // --- Solo para dibujar la barra de vRegla (valores de 0 a 1) ---
+        // Solo para dibujar la barra de vRegla (valores de 0 a 1)
         // Ancho de la parte llena (% real) y posición de la marca de la meta.
-        // La barra completa equivale a la meta más alta del perfil + 20 %, como en el mockup.
+        // La barra completa equivale a la meta más alta del perfil + 20 %.
         public double AnchoBarra { get; set; }
         public double PosicionMeta { get; set; }
 
@@ -158,7 +158,6 @@ namespace MovilAppProject.Services
         public Rect RectMeta => new Rect(PosicionMeta, 0, 2, 14);
     }
 
-    // Resultado completo de la regla de un mes
     public class ResultadoRegla
     {
         public decimal Ingresos { get; set; }
@@ -191,21 +190,19 @@ namespace MovilAppProject.Services
         }
     }
 
-    // PB11 · Lógica de la regla en un servicio independiente de la interfaz (RF05, RNF07).
-    // No usa ninguna vista: solo lee los movimientos desde MovimientoRepository.
-    // Lo pueden reutilizar vRegla (PB12), vInicio y vRecomendaciones (PB22).
+    // Cálculo de la regla 50/40/10 (PB11). No depende de ninguna vista: lo usan vRegla, vInicio y vRecomendaciones.
     public class ReglaPresupuestoService
     {
-        // Mensaje exacto de la hoja Validaciones (V11)
+        // Mensaje exacto (V11)
         public const string MensajeSinIngresos = "Registra un ingreso para ver tu regla del mes.";
 
-        // PB15 · Claves de Preferences del perfil de porcentajes
+        // Claves de Preferences del perfil de porcentajes
         public const string ClavePerfil = "PerfilRegla";
         public const string ClaveNecesidades = "PorcentajeNecesidades";
         public const string ClaveAhorro = "PorcentajeAhorroInversion";
         public const string ClaveLujos = "PorcentajeLujos";
 
-        // Límites del semáforo según el documento de requisitos, sección 2.3 (D14).
+        // Límites del semáforo.
         // Tope (Necesidades y Lujos): verde hasta 100 %, amarillo hasta 130 %.
         // Mínimo (Ahorro e inversión): verde desde 100 %, amarillo desde 75 %.
         const decimal limiteVerde = 100;
@@ -214,23 +211,19 @@ namespace MovilAppProject.Services
 
         private readonly MovimientoRepository _repo;
 
-        // Mensaje del último resultado (igual que en el repositorio)
         public string StatusMessage { get; set; } = string.Empty;
 
-        // Recibe el repositorio por inyección de dependencias (MauiProgram.cs)
         public ReglaPresupuestoService(MovimientoRepository repo)
         {
             _repo = repo;
         }
 
-        // Calcula la regla del mes con el perfil que eligió el usuario (PB15).
+        // Calcula la regla del mes con el perfil que eligió el usuario.
         // Si no ha elegido ninguno se usa 50/40/10 (por defecto).
         public ResultadoRegla CalcularRegla(int anio, int mes)
         {
             return CalcularRegla(anio, mes, ObtenerPerfilActual());
         }
-
-        // ---------------- PB15 · Perfil de porcentajes (Preferences) ----------------
 
         // Lee el perfil guardado. Si no hay nada guardado o los datos no son válidos,
         // devuelve el perfil por defecto 50/40/10.
@@ -290,7 +283,7 @@ namespace MovilAppProject.Services
             return CalcularRegla(_repo.ListarPorMes(anio, mes), perfil);
         }
 
-        // PB19: calcula con los movimientos del mes que la pantalla ya leyó,
+        // Calcula con los movimientos del mes que la pantalla ya leyó,
         // así vInicio consulta la base una sola vez para saldo, regla y movimientos.
         public ResultadoRegla CalcularRegla(List<Movimiento> movimientos)
         {
@@ -303,7 +296,6 @@ namespace MovilAppProject.Services
 
             try
             {
-                // Ingresos del mes
                 decimal ingresos = 0;
                 foreach (Movimiento m in movimientos)
                 {
@@ -334,10 +326,8 @@ namespace MovilAppProject.Services
                     }
                 }
 
-                // Un resumen por grupo, en el orden de la regla
                 foreach (GrupoPresupuesto grupo in _repo.ObtenerGrupos())
                 {
-                    // Total gastado en el grupo
                     decimal gastado = 0;
                     foreach (Movimiento m in movimientos)
                     {
@@ -382,7 +372,7 @@ namespace MovilAppProject.Services
             return resultado;
         }
 
-        // PB13 · Semáforo de un grupo (documento de requisitos 2.3, decisión D14).
+        // Semáforo de un grupo.
         // Ahorro e inversión es un mínimo a alcanzar; Necesidades y Lujos son un tope.
         // Ejemplo con meta de lujos de 100 USD: 90 -> Verde, 120 -> Amarillo, 160 -> Rojo.
         public static EstadoSemaforo CalcularSemaforo(int grupoId, decimal gastado, decimal meta)
@@ -450,7 +440,7 @@ namespace MovilAppProject.Services
         }
 
         // Escala de las barras de vRegla: la barra completa es la meta más alta + 20 %
-        // (con 50/40/10 la barra completa es 60 %, igual que el mockup).
+        // (con 50/40/10 la barra completa es 60 %).
         private static void CalcularBarras(List<ResumenGrupo> grupos)
         {
             decimal metaMasAlta = 0;

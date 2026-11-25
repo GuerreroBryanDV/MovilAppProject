@@ -1,10 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!--
-    vEstadisticas.xaml  (PB16 · MAP-16 · RF11 · HU7, HU8 · Figura 6)
-    Gasto total del mes y gráfico de gastos por categoría (LiveCharts2, D21).
-    PB14: usa el mismo mes que vInicio y vRegla (Utils/FiltroMes).
-    V10: sin gastos en el mes se muestra "No hay movimientos en este mes." en lugar del gráfico.
--->
+<!-- Estadísticas: gasto total del mes y gráfico por categoría (PB16) -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Maui;assembly=LiveChartsCore.SkiaSharpView.Maui"
@@ -15,7 +10,7 @@
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="14">
 
-            <!-- ===== Encabezado: "Estadísticas"  ·  ‹ Noviembre 2026 › ===== -->
+            <!-- Encabezado: "Estadísticas" · ‹ Noviembre 2026 › -->
             <Grid ColumnDefinitions="*,Auto">
                 <Label Text="Estadísticas"
                        Style="{StaticResource TituloPagina}"
@@ -37,7 +32,7 @@
                 </HorizontalStackLayout>
             </Grid>
 
-            <!-- ===== Gasto total del mes (coincide con los egresos de vInicio, HU7) ===== -->
+            <!-- Gasto total del mes (coincide con los egresos de vInicio) -->
             <Border Style="{StaticResource TarjetaOscura}">
                 <VerticalStackLayout Spacing="4">
                     <Label Text="Gasto total del mes"
@@ -60,7 +55,6 @@
                        HorizontalTextAlignment="Center"/>
             </Border>
 
-            <!-- ===== Gráfico por categoría ===== -->
             <Border x:Name="brdGrafico"
                     Style="{StaticResource Tarjeta}">
                 <VerticalStackLayout Spacing="12">

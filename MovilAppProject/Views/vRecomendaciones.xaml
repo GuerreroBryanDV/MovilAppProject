@@ -1,13 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!--
-    vRecomendaciones.xaml  (PB22 · Pantalla de recomendaciones IA, RF15)
-    Pantalla "Recomendaciones IA" según el mockup (Figura 8). Pestaña "IA" de la barra inferior.
-    - Una tarjeta por grupo con su % real frente a la meta (datos de ReglaPresupuestoService, PB11).
-    - Recomendaciones del mes generadas por IAService (PB21, Gemini); solo se envían totales (V27).
-    - V24: sin al menos un ingreso y un gasto en el mes, o sin internet, se muestra el mensaje en la vista.
-    - Aviso "Generado por IA, no es asesoría financiera."
-    PB23 (Fernanda): el bloque "Pregúntale a la IA" se agrega en esta misma pantalla (ver comentario abajo).
--->
+<!-- Recomendaciones de la IA por grupo de la regla (PB22) -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:servicios="clr-namespace:MovilAppProject.Services"
@@ -36,7 +28,7 @@
                        HorizontalTextAlignment="Center"/>
             </Border>
 
-            <!-- ===== Una tarjeta por grupo: "LUJOS · 12 % DE 10 %" ===== -->
+            <!-- Una tarjeta por grupo: "LUJOS · 12 % DE 10 %" -->
             <VerticalStackLayout x:Name="slGrupos"
                                  Spacing="12">
                 <BindableLayout.ItemTemplate>
@@ -87,7 +79,7 @@
                 </BindableLayout.ItemTemplate>
             </VerticalStackLayout>
 
-            <!-- ===== Recomendaciones generadas por la IA (IAService, PB21) ===== -->
+            <!-- Recomendaciones generadas por la IA (IAService) -->
             <Border x:Name="brdIA"
                     Style="{StaticResource Tarjeta}"
                     Padding="16"
@@ -133,10 +125,10 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- PB23 (Fernanda): bloque "Pregúntale a la IA" (Entry + botón Enviar, V25, V26) -->
+            <!-- Bloque "Pregúntale a la IA" (Entry + botón Enviar, V25, V26) -->
             <views:vPreguntaIA xmlns:views="clr-namespace:MovilAppProject.Views"/>
 
-            <!-- Aviso obligatorio de PB22 -->
+            <!-- Aviso obligatorio -->
             <Label Text="Generado por IA, no es asesoría financiera."
                    Style="{StaticResource TextoSecundario}"
                    FontSize="12"/>

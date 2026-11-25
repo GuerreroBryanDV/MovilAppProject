@@ -1,6 +1,5 @@
 <?php
-// PB25 · Servicio web de categorías (solo lectura: son fijas en v1.0)
-// Devuelve cada categoría con el nombre de su grupo de la regla.
+// Servicio web de categorías (PB25). Solo lectura: devuelve cada categoría con el nombre de su grupo.
 include "config.php";
 include "utils.php";
 

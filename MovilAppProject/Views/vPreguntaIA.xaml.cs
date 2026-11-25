@@ -4,12 +4,7 @@ using MovilAppProject.Utils;
 
 namespace MovilAppProject.Views;
 
-// PB23 · MAP-23 · Preguntar a la IA
-// Componente que va dentro de vRecomendaciones (PB22).
-// V25: la pregunta debe tener entre 5 y 200 caracteres (sin espacios al inicio y al final).
-// V26: el botón Enviar se deshabilita mientras espera; IAService (PB21) corta a los 30 s
-//      y devuelve "La IA no respondió. Inténtalo de nuevo.".
-// Solo se envían a la IA los totales del mes (V27), igual que en las recomendaciones.
+// Pregunta a la IA (PB23). Componente que va dentro de vRecomendaciones.
 public partial class vPreguntaIA : ContentView
 {
     // V25: límites de la pregunta
@@ -21,7 +16,6 @@ public partial class vPreguntaIA : ContentView
         InitializeComponent();
     }
 
-    // ===== Enviar pregunta =====
     private async void btnEnviar_Clicked(object sender, EventArgs e)
     {
         // V26: si ya se está esperando una respuesta no se envía otra vez
@@ -47,12 +41,12 @@ public partial class vPreguntaIA : ContentView
             slEsperando.IsVisible = true;
             brdRespuesta.IsVisible = false;
 
-            // Totales del mes seleccionado (PB14), con el perfil de la regla elegido (PB15)
+            // Totales del mes seleccionado, con el perfil de la regla elegido
             DateTime mes = FiltroMes.Mes;
             PerfilPresupuesto perfil = App.ReglaService.ObtenerPerfilActual();
             ResultadoRegla regla = await Task.Run(() => App.ReglaService.CalcularRegla(mes.Year, mes.Month, perfil));
 
-            // PB21: consulta a la IA
+            // Consulta a la IA
             ResultadoIA respuesta = await App.IAService.PreguntarAsync(pregunta, regla);
 
             if (!respuesta.Exito)
@@ -81,7 +75,7 @@ public partial class vPreguntaIA : ContentView
         }
     }
 
-    // Muestra el error con DisplayAlert("Error", mensaje, "Aceptar") (hoja Validaciones)
+    // Muestra el error con DisplayAlert("Error", mensaje, "Aceptar")
     private async Task MostrarError(string mensaje)
     {
         Page? pagina = Shell.Current;

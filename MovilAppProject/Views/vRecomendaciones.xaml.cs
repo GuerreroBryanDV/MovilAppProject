@@ -4,9 +4,7 @@ using MovilAppProject.Utils;
 
 namespace MovilAppProject.Views;
 
-// PB22 · Pantalla de recomendaciones IA (RF15), según el mockup (Figura 8).
-// Los datos del mes salen de ReglaPresupuestoService (PB11) y las recomendaciones de IAService (PB21).
-// Validación V24: sin al menos un ingreso y un gasto en el mes, o sin internet, se muestra el mensaje.
+// Recomendaciones de la IA (PB22). Sin un ingreso y un gasto en el mes, o sin internet, se muestra el aviso (V24).
 public partial class vRecomendaciones : ContentPage
 {
     // Datos con los que se pidieron las últimas recomendaciones.
@@ -35,7 +33,7 @@ public partial class vRecomendaciones : ContentPage
         CargarRecomendaciones(true);
     }
 
-    // ===== Carga las tarjetas del mes y las recomendaciones de la IA =====
+    // Carga las tarjetas del mes y las recomendaciones de la IA
     private async void CargarRecomendaciones(bool forzar)
     {
         if (consultando)
@@ -45,7 +43,7 @@ public partial class vRecomendaciones : ContentPage
 
         try
         {
-            // Mes seleccionado en Inicio / Regla (PB14)
+            // Mes seleccionado en Inicio / Regla
             DateTime mes = FiltroMes.Mes;
             PerfilPresupuesto perfil = App.ReglaService.ObtenerPerfilActual();
 
@@ -54,7 +52,7 @@ public partial class vRecomendaciones : ContentPage
                               + " y la regla " + perfil.PorcentajeNecesidades + "/"
                               + perfil.PorcentajeAhorroInversion + "/" + perfil.PorcentajeLujos + ".";
 
-            // PB19: el cálculo lee la base fuera del hilo de la pantalla
+            // El cálculo lee la base fuera del hilo de la pantalla
             ResultadoRegla regla = await Task.Run(() => App.ReglaService.CalcularRegla(mes.Year, mes.Month, perfil));
 
             // Error al leer la base de datos
@@ -122,7 +120,6 @@ public partial class vRecomendaciones : ContentPage
         }
     }
 
-    // ===== Acciones de cada tarjeta (como en el mockup) =====
     private async void Accion_Tapped(object sender, TappedEventArgs e)
     {
         try
@@ -134,7 +131,7 @@ public partial class vRecomendaciones : ContentPage
 
             if (grupoId == GrupoPresupuesto.AhorroInversionId)
             {
-                // "Programar recordatorio" -> Ajustes (PB20)
+                // "Programar recordatorio" -> Ajustes
                 await Shell.Current.GoToAsync("//vAjustes");
             }
             else if (grupoId == GrupoPresupuesto.LujosId)
@@ -144,7 +141,7 @@ public partial class vRecomendaciones : ContentPage
             }
             else
             {
-                // "Registrar movimiento" -> Nuevo movimiento (PB05 / PB06)
+                // "Registrar movimiento" -> Nuevo movimiento
                 await Navigation.PushAsync(new vMovimiento());
             }
         }

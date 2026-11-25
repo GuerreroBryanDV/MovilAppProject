@@ -4,11 +4,7 @@ using MovilAppProject.Services;
 
 namespace MovilAppProject.Views;
 
-// PB05 · MAP-5 · HU1 Registrar gasto  /  PB07 · guardado en SQLite
-// PB09 · Editar movimiento  /  PB10 · Eliminar movimiento con confirmación
-// Validaciones V01 a V09 de la hoja "Validaciones" del Product Backlog.
-// PB25: después de guardar o eliminar en SQLite, se envía también al servicio web (MySQL).
-// PB24: solo se muestran los mensajes de esa hoja, con DisplayAlert("Error", mensaje, "Aceptar").
+// Registro, edición y eliminación de movimientos (PB05, PB09, PB10).
 public partial class vMovimiento : ContentPage
 {
     // Tipo de movimiento seleccionado (V01). Por defecto: Gasto.
@@ -23,18 +19,18 @@ public partial class vMovimiento : ContentPage
     // Nombre del grupo de cada categoría, para mostrar "Comida - Necesidades"
     private readonly Dictionary<int, string> _grupos;
 
-    // PB09: movimiento que se está editando (null = nuevo movimiento)
+    // Movimiento que se está editando (null = nuevo movimiento)
     private Movimiento? _movimientoEditar;
 
     public vMovimiento()
     {
         InitializeComponent();
 
-        // Las categorías y sus grupos vienen de la base de datos (PB03)
+        // Las categorías y sus grupos vienen de la base de datos
         _categorias = App.MovimientoRepo.ObtenerCategoriasGasto();
         _grupos = App.MovimientoRepo.ObtenerGrupos().ToDictionary(g => g.Id, g => g.Nombre);
 
-        // Picker: "Categoría - Grupo" (igual que el mockup)
+        // Picker: "Categoría - Grupo"
         foreach (Categoria categoria in _categorias)
         {
             pkCategoria.Items.Add(categoria.Nombre + " - " + NombreGrupo(categoria));
@@ -45,7 +41,6 @@ public partial class vMovimiento : ContentPage
         dpFecha.Date = DateTime.Today;
     }
 
-    // ===== PB09: abrir en modo edición =====
     // Se llama desde vInicio al tocar un movimiento: recibe el movimiento
     // y carga sus datos en el formulario.
     public vMovimiento(Movimiento movimiento) : this()
@@ -55,7 +50,6 @@ public partial class vMovimiento : ContentPage
         lblTitulo.Text = "Editar movimiento";
         Title = "Editar movimiento";
 
-        // Tipo (V01)
         if (movimiento.Tipo == TipoMovimiento.Ingreso)
         {
             btnIngreso_Clicked(btnIngreso, EventArgs.Empty);
@@ -64,7 +58,6 @@ public partial class vMovimiento : ContentPage
         {
             btnGasto_Clicked(btnGasto, EventArgs.Empty);
 
-            // Selecciona en el Picker la categoría guardada
             for (int i = 0; i < _categorias.Count; i++)
             {
                 if (_categorias[i].Id == movimiento.CategoriaId)
@@ -75,18 +68,16 @@ public partial class vMovimiento : ContentPage
             }
         }
 
-        // Monto, fecha y nota
         txtMonto.Text = movimiento.Monto.ToString("0.00");
         dpFecha.Date = movimiento.Fecha;
         txtNota.Text = movimiento.Nota;
 
         btnGuardar.Text = "Guardar cambios";
 
-        // PB10: en modo edición se puede eliminar
+        // En modo edición se puede eliminar
         btnEliminar.IsVisible = true;
     }
 
-    // ===== Tipo: Gasto =====
     private void btnGasto_Clicked(object sender, EventArgs e)
     {
         tipo = "Gasto";
@@ -99,7 +90,6 @@ public partial class vMovimiento : ContentPage
         }
     }
 
-    // ===== Tipo: Ingreso =====
     private void btnIngreso_Clicked(object sender, EventArgs e)
     {
         tipo = "Ingreso";
@@ -140,7 +130,6 @@ public partial class vMovimiento : ContentPage
         brdAviso.IsVisible = true;
     }
 
-    // ===== Guardar =====
     private async void btnGuardar_Clicked(object sender, EventArgs e)
     {
         try
@@ -231,20 +220,19 @@ public partial class vMovimiento : ContentPage
             bool guardado;
             if (_movimientoEditar == null)
             {
-                // Nuevo movimiento (PB05)
                 guardado = App.MovimientoRepo.AgregarMovimiento(movimiento);
 
-                // PB25: POST al servicio web (Insert ya le puso el Id de SQLite)
+                // POST al servicio web (Insert ya le puso el Id de SQLite)
                 if (guardado)
                     _ = ServicioWeb.AgregarAsync(movimiento);
             }
             else
             {
-                // PB09: se actualiza el mismo registro (por su Id)
+                // Se actualiza el mismo registro (por su Id)
                 movimiento.Id = _movimientoEditar.Id;
                 guardado = App.MovimientoRepo.EditarMovimiento(movimiento);
 
-                // PB25: PUT al servicio web
+                // PUT al servicio web
                 if (guardado)
                     _ = ServicioWeb.ActualizarAsync(movimiento);
             }
@@ -266,7 +254,6 @@ public partial class vMovimiento : ContentPage
         }
     }
 
-    // ===== PB10: Eliminar con confirmación (V09) =====
     private async void btnEliminar_Clicked(object sender, EventArgs e)
     {
         try
@@ -298,7 +285,7 @@ public partial class vMovimiento : ContentPage
                 return;
             }
 
-            // PB25: DELETE en el servicio web
+            // DELETE en el servicio web
             _ = ServicioWeb.EliminarAsync(_movimientoEditar.Id);
 
             await DisplayAlertAsync("Éxito", MensajeRepositorio(), "Aceptar");
@@ -312,7 +299,7 @@ public partial class vMovimiento : ContentPage
         }
     }
 
-    // PB24: el repositorio devuelve "Error: ..."; como la alerta ya se titula
+    // El repositorio devuelve "Error: ..."; como la alerta ya se titula
     // "Error", se quita el prefijo para no repetir la palabra.
     private string MensajeRepositorio()
     {
@@ -365,7 +352,6 @@ public partial class vMovimiento : ContentPage
         return true;
     }
 
-    // Devuelve true si el texto tiene solo números
     private bool SoloNumeros(string texto)
     {
         foreach (char c in texto)

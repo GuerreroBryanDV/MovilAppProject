@@ -1,11 +1,5 @@
 ﻿<?xml version = "1.0" encoding = "UTF-8" ?>
-<!--
-    App.xaml
-    Recursos GLOBALES de GastoFácil (PB04 · MAP-4).
-    Colores y estilos tomados de los mockups (Figuras 1–8).
-    Todo lo definido aquí se usa en cualquier página con
-    {StaticResource NombreDelRecurso}.
--->
+<!-- Colores y estilos globales de la app -->
 <Application xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:MovilAppProject"
@@ -19,8 +13,6 @@
                 <ResourceDictionary Source="Resources/Styles/Colors.xaml" />
                 <ResourceDictionary Source="Resources/Styles/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
-
-            <!-- ===== ESTILOS GLOBALES IMPLÍCITOS (sin x:Key) ===== -->
 
             <!-- Todas las páginas con fondo beige -->
             <Style TargetType="ContentPage" ApplyToDerivedTypes="True">
@@ -36,8 +28,6 @@
                     <views:BarraInferior Grid.Row="1"/>
                 </Grid>
             </ControlTemplate>
-
-            <!-- ===== ESTILOS GLOBALES EXPLÍCITOS (con x:Key) ===== -->
 
             <!-- Título de cada pantalla: "Nuevo movimiento", "Regla 50/40/10" -->
             <Style x:Key="TituloPagina" TargetType="Label">

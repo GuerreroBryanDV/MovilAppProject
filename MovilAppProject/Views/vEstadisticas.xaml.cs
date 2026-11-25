@@ -7,9 +7,7 @@ using SkiaSharp;
 
 namespace MovilAppProject.Views;
 
-// PB16 · MAP-16 · Estadísticas con gráfico por categoría (RF11, HU7, HU8).
-// Muestra el gasto total del mes y un gráfico de dona por categoría (LiveCharts2, D21).
-// Usa el mes seleccionado en vInicio y vRegla (PB14, Utils/FiltroMes).
+// Estadísticas del mes con un gráfico de dona por categoría (PB16).
 public partial class vEstadisticas : ContentPage
 {
     // Colores por grupo, en tonos del color de cada grupo (Colors.xaml), para que
@@ -36,7 +34,7 @@ public partial class vEstadisticas : ContentPage
         CargarEstadisticas();
     }
 
-    // ===== PB14: mes anterior / siguiente (nunca pasa del mes actual, V10) =====
+    // Mes anterior / siguiente (nunca pasa del mes actual, V10)
     private void btnMesAnterior_Clicked(object sender, EventArgs e)
     {
         FiltroMes.Anterior();
@@ -49,7 +47,7 @@ public partial class vEstadisticas : ContentPage
         CargarEstadisticas();
     }
 
-    // ===== Carga los gastos del mes seleccionado =====
+    // Carga los gastos del mes seleccionado
     private async void CargarEstadisticas()
     {
         try
@@ -75,7 +73,7 @@ public partial class vEstadisticas : ContentPage
                 .OrderByDescending(c => c.Total)
                 .ToList();
 
-            // HU7: el total del gráfico es la suma de los gastos del mes (= egresos de vInicio)
+            // El total del gráfico es la suma de los gastos del mes (= egresos de vInicio)
             decimal total = categorias.Sum(c => c.Total);
             lblTotal.Text = "$" + total.ToString("N2");
 
@@ -141,7 +139,7 @@ public partial class vEstadisticas : ContentPage
         chartGastos.Series = series;
     }
 
-    // Leyenda como en el mockup:  ● Comida · Necesidades          $120,00 · 40 %
+    // Leyenda: ● Comida · Necesidades $120,00 · 40 %
     private void MostrarLeyenda(List<GastoCategoria> categorias, decimal total)
     {
         slCategorias.Children.Clear();

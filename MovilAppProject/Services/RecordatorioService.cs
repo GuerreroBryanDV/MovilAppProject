@@ -3,13 +3,10 @@ using Plugin.LocalNotification.Core.Models;
 
 namespace MovilAppProject.Services
 {
-    // PB20 · Recordatorios locales (RF13)
-    // Programa una notificación local que llega aunque la app esté cerrada.
-    // El recordatorio se guarda en Preferences (igual que los demás ajustes).
-    // Validaciones V20, V21, V22 y V23 de la hoja "Validaciones" del Product Backlog.
+    // Notificaciones locales para los recordatorios (PB20); llegan aunque la app esté cerrada.
     public class RecordatorioService
     {
-        // Mensajes exactos de la hoja Validaciones
+        // Mensajes exactos
         public const string MensajeTexto = "Escribe un recordatorio de 3 a 50 caracteres.";                                        // V20
         public const string MensajeFrecuencia = "Selecciona la frecuencia del recordatorio.";                                       // V22
         public const string MensajePermiso = "Activa las notificaciones en la configuración del teléfono para recibir recordatorios."; // V23
@@ -31,10 +28,7 @@ namespace MovilAppProject.Services
         // Id fijo de la notificación: así un recordatorio nuevo reemplaza al anterior
         const int IdRecordatorio = 2020;
 
-        // Mensaje del último resultado (igual que en el repositorio)
         public string StatusMessage { get; set; } = string.Empty;
-
-        // ---------------- Validaciones ----------------
 
         // V20: entre 3 y 50 caracteres, sin contar espacios al inicio y al final
         public static bool TextoValido(string? texto)
@@ -49,8 +43,6 @@ namespace MovilAppProject.Services
             return frecuencia is not null && Frecuencias.Contains(frecuencia);
         }
 
-        // ---------------- Recordatorio guardado ----------------
-
         public bool HayRecordatorio => Preferences.ContainsKey(ClaveTexto);
 
         public string ObtenerTexto() => Preferences.Get(ClaveTexto, "");
@@ -58,8 +50,6 @@ namespace MovilAppProject.Services
         public TimeSpan ObtenerHora() => TimeSpan.FromTicks(Preferences.Get(ClaveHora, HoraPorDefecto.Ticks));
 
         public string ObtenerFrecuencia() => Preferences.Get(ClaveFrecuencia, "");
-
-        // ---------------- Programar ----------------
 
         // Valida (V20, V22), pide el permiso (V23) y programa la notificación.
         // Si algo falla no se guarda nada y StatusMessage tiene el mensaje para el usuario.

@@ -3,9 +3,7 @@ using Plugin.Maui.Biometric;
 
 namespace MovilAppProject.Utils
 {
-    // PB18 · Huella, rostro o Windows Hello con Plugin.Maui.Biometric (D16).
-    // Lo usan vDesbloqueo (login) y vAjustes (confirmar identidad), así las dos pantallas
-    // verifican la identidad de la misma forma.
+    // Autenticación con huella mediante Plugin.Maui.Biometric (PB18). La usan vDesbloqueo y vAjustes.
     public static class Biometria
     {
         // Nivel con el que el dispositivo respondió bien (se prueba Strong y luego Weak,

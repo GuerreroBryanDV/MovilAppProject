@@ -1,8 +1,6 @@
 namespace MovilAppProject.Models
 {
-    // PB25 · Movimiento tal como lo devuelve el servicio web (MySQL).
-    // Los nombres van en minúscula, igual que las columnas de la tabla
-    // y que el modelo Estudiante del ejemplo de la Semana 6.
+    // Movimiento tal como lo devuelve el servicio web; los nombres van en minúscula como las columnas de MySQL.
     public class MovimientoWS
     {
         public int codigo { get; set; }
@@ -11,7 +9,7 @@ namespace MovilAppProject.Models
         public int categoria_id { get; set; }
         public string fecha { get; set; } = string.Empty;
         public string? nota { get; set; }
-        // PB27: uid del usuario dueño (null = movimiento anterior al login)
+        // Uid del usuario dueño (null = movimiento anterior al login)
         public string? usuario_uid { get; set; }
     }
 }

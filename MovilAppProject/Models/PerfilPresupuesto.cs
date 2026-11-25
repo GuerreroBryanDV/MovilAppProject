@@ -1,6 +1,6 @@
 namespace MovilAppProject.Models
 {
-    // Porcentajes de la regla. No es tabla: se guardará en Preferences (PB15).
+    // Porcentajes de la regla. No es una tabla: se guarda en Preferences.
     public class PerfilPresupuesto
     {
         public const string NombrePersonalizado = "Personalizado";
@@ -24,7 +24,7 @@ namespace MovilAppProject.Models
             Nombre = "Clásica 50/20/30", PorcentajeNecesidades = 50, PorcentajeAhorroInversion = 20, PorcentajeLujos = 30, EsFijo = true
         };
 
-        // PB15: perfil con los porcentajes que escribe el usuario
+        // Perfil con los porcentajes que escribe el usuario
         public static PerfilPresupuesto Personalizado(int necesidades, int ahorroInversion, int lujos) => new()
         {
             Nombre = NombrePersonalizado, PorcentajeNecesidades = necesidades, PorcentajeAhorroInversion = ahorroInversion, PorcentajeLujos = lujos, EsFijo = false

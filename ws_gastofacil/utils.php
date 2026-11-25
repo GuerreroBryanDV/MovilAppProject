@@ -31,7 +31,7 @@
   return $statement;
    }
 
-  // PB27 · Login: crea la tabla usuario y la columna movimiento.usuario_uid si todavía no existen.
+  // Crea la tabla usuario y la columna movimiento.usuario_uid si todavía no existen.
   // Así funciona tanto con una base nueva como con una importada antes del login,
   // sin tener que volver a importar el .sql.
   function migrar($conn)

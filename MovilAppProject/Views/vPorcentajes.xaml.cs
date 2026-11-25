@@ -2,13 +2,10 @@ using MovilAppProject.Models;
 
 namespace MovilAppProject.Views;
 
-// PB15 · Perfiles de porcentajes de la regla (RF07)
-// Validaciones V13, V14 y V15 de la hoja "Validaciones" del Product Backlog.
-// El perfil se guarda en Preferences mediante ReglaPresupuestoService (PB11),
-// así vRegla calcula las metas con los nuevos porcentajes.
+// Perfiles de porcentajes de la regla (PB15).
 public partial class vPorcentajes : ContentPage
 {
-    // Mensajes exactos de la hoja Validaciones
+    // Mensajes exactos
     const string MSG_V14 = "Cada porcentaje debe ser un número entero entre 0 y 100.";
 
     // Perfil seleccionado (V13). Por defecto: 50/40/10.
@@ -35,7 +32,6 @@ public partial class vPorcentajes : ContentPage
         SeleccionarPerfil(perfil.Nombre);
     }
 
-    // ===== Perfiles (V13) =====
     private void brdDefecto_Tapped(object sender, TappedEventArgs e)
     {
         SeleccionarPerfil(PerfilPresupuesto.Regla50_40_10.Nombre);
@@ -79,7 +75,7 @@ public partial class vPorcentajes : ContentPage
         ActualizarSuma();
     }
 
-    // Tarjeta elegida: borde verde oscuro más grueso (igual que el mockup)
+    // Tarjeta elegida: borde verde oscuro más grueso
     private void MarcarTarjeta(Border tarjeta, bool seleccionada)
     {
         Color primario = (Color)Application.Current!.Resources["Primary"];
@@ -99,7 +95,6 @@ public partial class vPorcentajes : ContentPage
         cargando = false;
     }
 
-    // ===== Suma en vivo (V14, V15) =====
     private void txtPorcentaje_TextChanged(object sender, TextChangedEventArgs e)
     {
         if (cargando)
@@ -162,7 +157,6 @@ public partial class vPorcentajes : ContentPage
         }
     }
 
-    // ===== Guardar cambios =====
     private async void btnGuardar_Clicked(object sender, EventArgs e)
     {
         try

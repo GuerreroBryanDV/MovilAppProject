@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!--
-    vRegla.xaml  (según el mockup "Regla 50/40/10")
-    Página base creada en PB04 (MAP-4) para la navegación del AppShell.
-    PB12 · Panel de la regla: % real, meta, dinero restante y barra por grupo.
-    PB13 · Semáforo por grupo (V12): etiqueta En meta / Cerca / Fuera de meta.
-    Los datos salen de ReglaPresupuestoService (PB11).
--->
+<!-- Panel de la regla con semáforo por grupo (PB12, PB13) -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:servicios="clr-namespace:MovilAppProject.Services"
@@ -16,13 +10,13 @@
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="14">
 
-            <!-- ===== Encabezado: "Regla 50/40/10"  ·  "Noviembre 2026" ===== -->
+            <!-- Encabezado: "Regla 50/40/10" · "Noviembre 2026" -->
             <Grid ColumnDefinitions="*,Auto">
                 <Label x:Name="lblTitulo"
                        Text="Regla 50/40/10"
                        Style="{StaticResource TituloPagina}"
                        Grid.Column="0"/>
-                <!-- PB14: selector de mes, el mismo que en vInicio -->
+                <!-- Selector de mes, el mismo que en vInicio -->
                 <HorizontalStackLayout Spacing="2"
                                        VerticalOptions="Center"
                                        Grid.Column="1">
@@ -54,7 +48,6 @@
                        HorizontalTextAlignment="Center"/>
             </Border>
 
-            <!-- ===== Una tarjeta por grupo ===== -->
             <VerticalStackLayout x:Name="slGrupos"
                                  Spacing="12">
                 <BindableLayout.ItemTemplate>
@@ -83,7 +76,7 @@
                                         </Label.Triggers>
                                     </Label>
 
-                                    <!-- PB13 · Semáforo (V12): verde por defecto -->
+                                    <!-- Semáforo (V12): verde por defecto -->
                                     <Border Padding="10,3"
                                             StrokeThickness="0"
                                             StrokeShape="RoundRectangle 10"
@@ -171,7 +164,7 @@
                 </BindableLayout.ItemTemplate>
             </VerticalStackLayout>
 
-            <!-- ===== "Cumplimiento del mes  ·  1 de 3 grupos" ===== -->
+            <!-- "Cumplimiento del mes · 1 de 3 grupos" -->
             <Border x:Name="brdCumplimiento"
                     BackgroundColor="{StaticResource Secondary}"
                     StrokeThickness="0"

@@ -16,20 +16,16 @@ namespace MovilAppProject.Services
         public string Mensaje { get; set; } = string.Empty;
     }
 
-    // PB21 · MAP-21 · Servicio de conexión con la IA (RNF01, RNF06).
-    // Usa la API de Google Gemini (modelo Flash-Lite, plan gratuito, D22).
-    // V27 / RNF06: solo envía los totales por grupo y los porcentajes de la regla del mes;
-    // nunca notas, montos individuales ni datos personales.
-    // La clave NO está en el código: se lee del archivo Resources/Raw/.env, que no se sube a Git (D23).
-    // Lo usan vRecomendaciones (PB22) y la pregunta a la IA (PB23).
+    // Conexión con la API de Google Gemini (PB21). Solo envía los totales por grupo del mes (V27),
+    // nunca notas ni montos individuales. La clave se lee de Resources/Raw/.env, que no se sube a Git.
     public class IAService
     {
-        // Mensajes de la hoja Validaciones
+        // Mensajes
         public const string MensajeSinConexion = "Sin conexión a internet: las recomendaciones necesitan conexión.";               // V24
-        public const string MensajeSinDatos = "Registra al menos un ingreso y un gasto este mes para recibir recomendaciones."; // V24 (PB22)
+        public const string MensajeSinDatos = "Registra al menos un ingreso y un gasto este mes para recibir recomendaciones."; // V24
         public const string MensajeSinRespuesta = "La IA no respondió. Inténtalo de nuevo.";                                       // V26
 
-        // Mensajes nuevos (no están en la hoja Validaciones; documentados en D23)
+        // Mensajes propios del servicio de IA
         public const string MensajeSinClave = "Falta configurar la clave de la IA (archivo .env).";
         public const string MensajeClaveInvalida = "La clave de la IA no es válida. Revisa el archivo .env.";
         public const string MensajeLimite = "Se alcanzó el límite de consultas a la IA por hoy. Inténtalo más tarde.";
@@ -63,15 +59,13 @@ namespace MovilAppProject.Services
             "No des asesoría financiera profesional ni recomiendes bancos, inversiones o productos financieros específicos. " +
             "No uses Markdown ni asteriscos.";
 
-        // ---------------- Uso desde las vistas ----------------
-
-        // V24 (PB22): hacen falta al menos un ingreso y un gasto en el mes
+        // Hacen falta al menos un ingreso y un gasto en el mes (V24)
         public static bool HayDatosSuficientes(ResultadoRegla regla)
         {
             return regla.HayIngresos && regla.Grupos.Any(g => g.Gastado > 0);
         }
 
-        // PB22: recomendaciones del mes según la regla
+        // Recomendaciones del mes según la regla
         public Task<ResultadoIA> ObtenerRecomendacionesAsync(ResultadoRegla regla)
         {
             string instrucciones = instruccionesBase +
@@ -80,7 +74,7 @@ namespace MovilAppProject.Services
             return EnviarAsync(instrucciones, ResumenAgregado(regla));
         }
 
-        // PB23: pregunta puntual del usuario (la validación V25 la hace la vista)
+        // Pregunta puntual del usuario (la validación V25 la hace la vista)
         public Task<ResultadoIA> PreguntarAsync(string pregunta, ResultadoRegla regla)
         {
             string instrucciones = instruccionesBase +
@@ -90,7 +84,7 @@ namespace MovilAppProject.Services
             return EnviarAsync(instrucciones, mensaje);
         }
 
-        // V27 / RNF06: lo único que sale del teléfono. Totales por grupo y porcentajes de la regla.
+        // Lo único que sale del teléfono. Totales por grupo y porcentajes de la regla (V27).
         // Ejemplo:
         //   Regla del mes: perfil 50/40/10.
         //   - Necesidades: meta 50 %, real 40 %, gastado USD 400,00, estado En meta.
@@ -120,11 +114,9 @@ namespace MovilAppProject.Services
             return texto.ToString();
         }
 
-        // ---------------- Llamada a Gemini ----------------
-
         private async Task<ResultadoIA> EnviarAsync(string instrucciones, string mensajeUsuario)
         {
-            // V24: sin internet no se intenta; el resto de la app sigue funcionando (RNF01)
+            // V24: sin internet no se intenta; el resto de la app sigue funcionando
             if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
             {
                 return Fallo(MensajeSinConexion, "Sin conexión");
@@ -244,8 +236,6 @@ namespace MovilAppProject.Services
             StatusMessage = detalle;
             return new ResultadoIA { Exito = false, Mensaje = mensaje };
         }
-
-        // ---------------- Archivo .env (D23) ----------------
 
         // Lee una clave del .env empaquetado con la app (Resources/Raw/.env).
         // Formato: una línea por valor, CLAVE=valor; las líneas con # son comentarios.

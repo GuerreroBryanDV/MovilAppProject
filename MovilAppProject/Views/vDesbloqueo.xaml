@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!--
-    vDesbloqueo.xaml  (PB18 · MAP-18 · Bloqueo con huella, Face ID o PIN)
-    Pantalla del mockup: aparece al abrir la app si el bloqueo está activo
-    (se activa en vAjustes, PB17). Sin autenticarse no se accede a vInicio.
-    V18: 3 intentos de PIN; al tercer error se espera 30 segundos.
-    V19: "Usar huella" solo aparece si el dispositivo tiene biometría.
--->
+<!-- Inicio de sesión con huella, PIN o contraseña (PB18, PB27) -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MovilAppProject.Views.vDesbloqueo"
@@ -25,7 +19,7 @@
                    Style="{StaticResource TextoSecundario}"
                    HorizontalOptions="Center"/>
 
-            <!-- Ícono de huella (círculos concéntricos, como en el mockup) -->
+            <!-- Ícono de huella (círculos concéntricos) -->
             <Grid WidthRequest="90"
                   HeightRequest="90"
                   HorizontalOptions="Center"
@@ -56,7 +50,7 @@
                    HorizontalOptions="Center"
                    HorizontalTextAlignment="Center"/>
 
-            <!-- Botones del mockup -->
+            <!-- Botones -->
             <Button x:Name="btnHuella"
                     Text="Usar huella"
                     Clicked="btnHuella_Clicked"

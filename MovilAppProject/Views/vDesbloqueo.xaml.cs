@@ -3,10 +3,8 @@ using MovilAppProject.Utils;
 
 namespace MovilAppProject.Views;
 
-// Login tipo banco (PB18 ampliado). Se muestra al abrir la app y cuando pasan
-// Sesion.MinutosInactividad minutos sin actividad. Solo entra el usuario registrado en el
-// dispositivo, con su contraseña, su PIN o su huella/rostro.
-// Validaciones V16 (formato del PIN), V18 (3 intentos y espera de 30 s) y V19 (biometría).
+// Inicio de sesión del usuario del dispositivo (PB18, PB27). Aparece al abrir la app y tras
+// Sesion.MinutosInactividad minutos sin actividad; se entra con contraseña, PIN o huella.
 public partial class vDesbloqueo : ContentPage
 {
     // V18: intentos permitidos y segundos de espera (PIN y contraseña comparten el contador)
@@ -77,7 +75,6 @@ public partial class vDesbloqueo : ContentPage
         await Navigation.PopModalAsync();
     }
 
-    // ===== Usar huella o rostro (V19) =====
     private async void btnHuella_Clicked(object sender, EventArgs e)
     {
         if (await Biometria.AutenticarAsync("Verifica tu identidad para abrir la app."))
@@ -120,7 +117,6 @@ public partial class vDesbloqueo : ContentPage
         txtPin.Focus();
     }
 
-    // ===== Desbloquear con PIN =====
     private async void btnDesbloquear_Clicked(object sender, EventArgs e)
     {
         try
@@ -137,7 +133,7 @@ public partial class vDesbloqueo : ContentPage
                 txtPin.Text = "";
                 return;
             }
-            // El PIN está en SecureStorage (RNF05)
+            // El PIN está en SecureStorage
             string pinGuardado = await PinStorage.ObtenerAsync() ?? "";
             if (pin == pinGuardado)
             {
@@ -153,7 +149,6 @@ public partial class vDesbloqueo : ContentPage
         }
     }
 
-    // ===== Desbloquear con contraseña =====
     private async void btnIngresarPassword_Clicked(object sender, EventArgs e)
     {
         try

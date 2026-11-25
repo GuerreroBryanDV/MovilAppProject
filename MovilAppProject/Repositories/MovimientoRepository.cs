@@ -5,28 +5,26 @@ using SQLite;
 
 namespace MovilAppProject.Repositories
 {
-    // Acceso a la base de datos SQLite local de GastoFácil (PB03 / PB06)
+    // Acceso a la base SQLite local (PB03)
     public class MovimientoRepository
     {
         string _dbPath;
         private SQLiteConnection? _conn;
 
-        // PB19: las pantallas leen en segundo plano mientras vMovimiento guarda en el hilo principal.
+        // Las pantallas leen en segundo plano mientras vMovimiento guarda en el hilo principal.
         // El candado evita que dos operaciones usen la misma conexión al mismo tiempo.
         private readonly object _bloqueo = new();
 
-        // Mensaje del último resultado (igual que en el ejemplo de la Semana 5)
         public string StatusMessage { get; set; } = string.Empty;
 
         // Constructor: recibe la ruta de la base desde MauiProgram.cs.
-        // La base y las tablas se crean al iniciar la app (PB03).
+        // La base y las tablas se crean al iniciar la app.
         public MovimientoRepository(string path)
         {
             _dbPath = path;
             Init();
         }
 
-        // Conexión a la base de datos, creación de tablas y datos iniciales
         private void Init()
         {
             if (_conn is not null)
@@ -37,7 +35,7 @@ namespace MovilAppProject.Repositories
             _conn.CreateTable<Categoria>();
             _conn.CreateTable<Movimiento>();
             _conn.CreateTable<Usuario>();
-            // PB27: al agregar la columna UsuarioId a una base anterior al login, SQLite deja los
+            // Al agregar la columna UsuarioId a una base anterior al login, SQLite deja los
             // movimientos existentes en NULL. Se pasan a 0 (sin dueño) y, si ya hay un usuario
             // registrado, se asignan al primero, igual que hace RegistrarUsuario.
             _conn.Execute("UPDATE movimiento SET UsuarioId = 0 WHERE UsuarioId IS NULL");
@@ -47,13 +45,13 @@ namespace MovilAppProject.Repositories
 
             CargarDatosPredefinidos(_conn);
 
-            // PB19: categorías y grupos son fijos en v1.0 (no hay categorías personalizadas),
+            // Categorías y grupos son fijos en v1.0 (no hay categorías personalizadas),
             // así que se leen una sola vez y no en cada consulta del mes.
             _categorias = _conn.Table<Categoria>().OrderBy(c => c.Id).ToList();
             _grupos = _conn.Table<GrupoPresupuesto>().OrderBy(g => g.Orden).ToList();
         }
 
-        // PB19: copia en memoria de las tablas fijas (se llenan en Init)
+        // Copia en memoria de las tablas fijas (se llenan en Init)
         private List<Categoria> _categorias = new();
         private List<GrupoPresupuesto> _grupos = new();
 
@@ -74,18 +72,15 @@ namespace MovilAppProject.Repositories
             {
                 conn.InsertAll(new List<Categoria>
                 {
-                    // Categorías predefinidas según el documento de requisitos (sección 2.3)
-                    // Necesidades
+                    // Categorías predefinidas
                     new() { Nombre = "Comida", GrupoId = GrupoPresupuesto.NecesidadesId },
                     new() { Nombre = "Vivienda", GrupoId = GrupoPresupuesto.NecesidadesId },
                     new() { Nombre = "Salud", GrupoId = GrupoPresupuesto.NecesidadesId },
                     new() { Nombre = "Transporte", GrupoId = GrupoPresupuesto.NecesidadesId },
                     new() { Nombre = "Servicios", GrupoId = GrupoPresupuesto.NecesidadesId },
-                    // Ahorro e inversión
                     new() { Nombre = "Fondo de emergencia", GrupoId = GrupoPresupuesto.AhorroInversionId },
                     new() { Nombre = "Educación", GrupoId = GrupoPresupuesto.AhorroInversionId },
                     new() { Nombre = "Invertir", GrupoId = GrupoPresupuesto.AhorroInversionId },
-                    // Lujos
                     new() { Nombre = "Restaurantes", GrupoId = GrupoPresupuesto.LujosId },
                     new() { Nombre = "Entretenimiento", GrupoId = GrupoPresupuesto.LujosId },
                     new() { Nombre = "Vacaciones", GrupoId = GrupoPresupuesto.LujosId },
@@ -95,8 +90,6 @@ namespace MovilAppProject.Repositories
                 });
             }
         }
-
-        // ---------------- Movimientos ----------------
 
         // Insert: guarda un gasto o un ingreso. Devuelve true si se guardó.
         public bool AgregarMovimiento(Movimiento movimiento)
@@ -122,7 +115,7 @@ namespace MovilAppProject.Repositories
             }
         }
 
-        // Update: para editar un movimiento (PB09)
+        // Update: para editar un movimiento
         public bool EditarMovimiento(Movimiento movimiento)
         {
             try
@@ -148,7 +141,7 @@ namespace MovilAppProject.Repositories
             }
         }
 
-        // Delete: para eliminar un movimiento (PB10)
+        // Delete: para eliminar un movimiento
         public bool EliminarMovimiento(int id)
         {
             try
@@ -182,7 +175,7 @@ namespace MovilAppProject.Repositories
                 DateTime inicio = new DateTime(anio, mes, 1);
                 DateTime fin = inicio.AddMonths(1);
 
-                // PB19 (RNF04): el filtro y el orden los hace SQLite usando el índice de Fecha,
+                // El filtro y el orden los hace SQLite usando el índice de Fecha,
                 // así solo se leen los movimientos del mes y ya vienen ordenados.
                 int usuarioId = Sesion.UsuarioId;
                 List<Movimiento> movimientos;
@@ -218,7 +211,7 @@ namespace MovilAppProject.Repositories
             return new List<Movimiento>();
         }
 
-        // PB25: todos los movimientos, para respaldarlos en MySQL (servicio web)
+        // Todos los movimientos, para respaldarlos en MySQL (servicio web)
         public List<Movimiento> ListarTodos()
         {
             try
@@ -236,8 +229,6 @@ namespace MovilAppProject.Repositories
             return new List<Movimiento>();
         }
 
-        // ---------------- Totales del mes (HU2 criterio 2 / PB07) ----------------
-
         public decimal ObtenerIngresosDelMes(int anio, int mes)
         {
             return ListarPorMes(anio, mes)
@@ -252,13 +243,12 @@ namespace MovilAppProject.Repositories
                 .Sum(m => m.Monto);
         }
 
-        // Saldo = ingresos - gastos del mes
         public decimal ObtenerSaldoDelMes(int anio, int mes)
         {
             return ObtenerIngresosDelMes(anio, mes) - ObtenerGastosDelMes(anio, mes);
         }
 
-        // ---------------- Saldo acumulado y coherencia (gasto <= ingresos) ----------------
+        // Saldo acumulado y coherencia (gasto <= ingresos)
 
         // Saldo acumulado: ingresos - gastos de TODOS los movimientos hasta el final del mes indicado.
         // Así lo que sobra de un mes pasa al siguiente.
@@ -354,7 +344,6 @@ namespace MovilAppProject.Repositories
             }
             return minimo;
         }
-        // ---------------- Usuario (login tipo banco) ----------------
 
         private const int IteracionesHash = 100_000;
 
@@ -474,7 +463,6 @@ namespace MovilAppProject.Repositories
             byte[] hash = Rfc2898DeriveBytes.Pbkdf2(contrasena, sal, IteracionesHash, HashAlgorithmName.SHA256, 32);
             return Convert.ToBase64String(hash);
         }
-        // ---------------- Categorías ----------------
 
         // Categorías para el Picker cuando el tipo es Gasto (sin "Ingreso")
         public List<Categoria> ObtenerCategoriasGasto()
@@ -482,7 +470,7 @@ namespace MovilAppProject.Repositories
             try
             {
                 Init();
-                // PB19: sale de la copia en memoria (una lista nueva, para que nadie cambie la copia)
+                // Sale de la copia en memoria (una lista nueva, para que nadie cambie la copia)
                 return _categorias
                     .Where(c => c.GrupoId != null)
                     .ToList();
@@ -500,7 +488,7 @@ namespace MovilAppProject.Repositories
             try
             {
                 Init();
-                // PB19: sale de la copia en memoria
+                // Sale de la copia en memoria
                 return _grupos.ToList();
             }
             catch (Exception ex)
@@ -516,7 +504,7 @@ namespace MovilAppProject.Repositories
             try
             {
                 Init();
-                // PB19: sale de la copia en memoria
+                // Sale de la copia en memoria
                 return _categorias.FirstOrDefault(c => c.Nombre == Categoria.NombreIngreso);
             }
             catch (Exception ex)

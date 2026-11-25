@@ -4,11 +4,10 @@ using MovilAppProject.Utils;
 
 namespace MovilAppProject.Views;
 
-// PB12 · Panel de la regla y PB13 · Semáforo por grupo (V11, V12), según el mockup.
-// Todos los cálculos los hace ReglaPresupuestoService (PB11); aquí solo se muestran.
+// Panel de la regla y semáforo por grupo (PB12, PB13). Los cálculos los hace ReglaPresupuestoService.
 public partial class vRegla : ContentPage
 {
-    // PB19: número de la última carga pedida (solo se muestra la última si se cambia de mes rápido)
+    // Número de la última carga pedida (solo se muestra la última si se cambia de mes rápido)
     int cargaActual = 0;
 
     public vRegla()
@@ -24,7 +23,7 @@ public partial class vRegla : ContentPage
         CargarRegla();
     }
 
-    // ===== PB14: mes anterior / siguiente (nunca pasa del mes actual, V10) =====
+    // Mes anterior / siguiente (nunca pasa del mes actual, V10)
     private void btnMesAnterior_Clicked(object sender, EventArgs e)
     {
         FiltroMes.Anterior();
@@ -37,19 +36,19 @@ public partial class vRegla : ContentPage
         CargarRegla();
     }
 
-    // ===== Carga la regla del mes seleccionado =====
+    // Carga la regla del mes seleccionado
     private async void CargarRegla()
     {
         try
         {
-            // PB14: mes seleccionado (compartido con vInicio): "Noviembre 2026"
+            // Mes seleccionado (compartido con vInicio): "Noviembre 2026"
             lblMes.Text = FiltroMes.Texto();
 
             // V10: el botón › se deshabilita en el mes actual (no hay meses futuros)
             btnMesSiguiente.IsEnabled = !FiltroMes.EsMesActual;
             btnMesSiguiente.Opacity = FiltroMes.EsMesActual ? 0.3 : 1;
 
-            // PB19 (RNF04): el cálculo lee la base fuera del hilo de la pantalla para no congelarla
+            // El cálculo lee la base fuera del hilo de la pantalla para no congelarla
             int carga = ++cargaActual;
             DateTime mes = FiltroMes.Mes;
             PerfilPresupuesto perfil = App.ReglaService.ObtenerPerfilActual();
@@ -62,7 +61,7 @@ public partial class vRegla : ContentPage
                 return;
             }
 
-            // Título con los porcentajes del perfil elegido en vPorcentajes (PB15): "Regla 60/30/10"
+            // Título con los porcentajes del perfil elegido en vPorcentajes: "Regla 60/30/10"
             lblTitulo.Text = "Regla " + resultado.Perfil.PorcentajeNecesidades + "/"
                            + resultado.Perfil.PorcentajeAhorroInversion + "/"
                            + resultado.Perfil.PorcentajeLujos;

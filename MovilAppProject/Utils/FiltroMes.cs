@@ -1,7 +1,6 @@
 namespace MovilAppProject.Utils
 {
-    // PB14 · Mes que se muestra en vInicio y vRegla (RF12).
-    // Es estático para que las dos pantallas compartan el mismo mes al cambiar de pestaña.
+    // Mes seleccionado (PB14). Es estático para que vInicio y vRegla compartan el mismo mes.
     public static class FiltroMes
     {
         // Siempre el día 1 del mes seleccionado

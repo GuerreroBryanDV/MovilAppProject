@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!--
-    vAjustes.xaml  (PB17 · MAP-17 · Pantalla de ajustes)
-    - Bloqueo de la app: al activarlo pide Nuevo PIN y Confirmar PIN (V16, V17).
-    - Recordatorios: interruptor; al activarlo se pide texto, hora y frecuencia (PB20, V20-V23).
-    - Regla 50/40/10: acceso a los perfiles de porcentajes (vPorcentajes, PB15).
-    Los valores se guardan en Preferences y se conservan al cerrar la app.
--->
+<!-- Ajustes: seguridad, recordatorios, regla y cuenta (PB17, PB20, PB27) -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MovilAppProject.Views.vAjustes"
@@ -21,14 +15,13 @@
             <Label Text="Seguridad, recordatorios y perfil de la regla."
                    Style="{StaticResource TextoSecundario}"/>
 
-            <!-- ===== Seguridad: bloqueo con PIN ===== -->
             <Border Style="{StaticResource Tarjeta}">
                 <VerticalStackLayout Spacing="10">
 
                     <Label Text="Seguridad" Style="{StaticResource EtiquetaCampo}" FontSize="15"/>
                     <Label x:Name="lblUsuarioActual" Style="{StaticResource TextoSecundario}"/>
 
-                    <!-- D20: cambiar el PIN (solo con el bloqueo activo; pide el PIN actual) -->
+                    <!-- Cambiar el PIN (solo con el bloqueo activo; pide el PIN actual) -->
                     <Button x:Name="btnCambiarPin"
                             Text="Cambiar PIN"
                             Clicked="btnCambiarPin_Clicked"
@@ -81,7 +74,6 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- ===== Recordatorios ===== -->
             <Border Style="{StaticResource Tarjeta}">
                 <VerticalStackLayout Spacing="10">
 
@@ -107,12 +99,12 @@
                             Grid.Column="1"/>
                 </Grid>
 
-                    <!-- PB20: recordatorio programado ("Registrar ahorro · 20:00 · Semanal") -->
+                    <!-- Recordatorio programado ("Registrar ahorro · 20:00 · Semanal") -->
                     <Label x:Name="lblRecordatorioActual"
                            Style="{StaticResource TextoSecundario}"
                            IsVisible="False"/>
 
-                    <!-- PB20 · Formulario del recordatorio: solo aparece al activar el interruptor -->
+                    <!-- Formulario del recordatorio: solo aparece al activar el interruptor -->
                     <VerticalStackLayout x:Name="slRecordatorio"
                                          Spacing="8"
                                          IsVisible="False">
@@ -165,7 +157,6 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- ===== Regla 50/40/10 ===== -->
             <Border Style="{StaticResource Tarjeta}">
                 <VerticalStackLayout Spacing="8">
                     <Label Text="Regla 50/40/10"
@@ -180,7 +171,6 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- ===== Cuenta: inactivar (borrado lógico) ===== -->
             <Border Style="{StaticResource Tarjeta}">
                 <VerticalStackLayout Spacing="8">
                     <Label Text="Cuenta"

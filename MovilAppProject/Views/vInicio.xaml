@@ -1,11 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!--
-    vInicio.xaml  (pantalla principal de GastoFácil, según el mockup)
-    PB07: saldo actual, ingresos y egresos del mes, botón "+ Nuevo".
-    PB08: últimos movimientos del mes.
-    PB14: selector de mes ‹ Noviembre 2026 › (no permite meses futuros, V10).
-    Además: resumen de la regla 50/40/10 y tarjeta de recomendación IA.
--->
+<!-- Pantalla principal: saldo, regla, recomendación IA y últimos movimientos (PB07, PB08, PB14) -->
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MovilAppProject.Views.vInicio"
@@ -17,7 +11,7 @@
     <ScrollView>
         <VerticalStackLayout Padding="20" Spacing="12">
 
-            <!-- ===== Encabezado: GastoFácil / ‹ mes ›  ·  + Nuevo ===== -->
+            <!-- Encabezado: GastoFácil / ‹ mes › · + Nuevo -->
             <Grid ColumnSpacing="10">
                 <Grid.RowDefinitions>
                     <RowDefinition/>
@@ -32,7 +26,7 @@
                        Style="{StaticResource TituloPagina}"
                        Grid.Row="0"
                        Grid.Column="0"/>
-                <!-- PB14: selector de mes -->
+                <!-- Selector de mes -->
                 <HorizontalStackLayout Spacing="2"
                                        Grid.Row="1"
                                        Grid.Column="0">
@@ -59,7 +53,6 @@
                         Grid.Column="1"/>
             </Grid>
 
-            <!-- ===== Saldo actual (tarjeta oscura) ===== -->
             <Border Style="{StaticResource TarjetaOscura}">
                 <VerticalStackLayout Spacing="4">
                     <Label Text="Saldo actual"
@@ -72,7 +65,6 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- ===== Ingresos | Egresos ===== -->
             <Grid ColumnSpacing="10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition/>
@@ -104,7 +96,7 @@
                 </Border>
             </Grid>
 
-            <!-- ===== Regla 50/40/10 (resumen con 3 barras) ===== -->
+            <!-- Regla 50/40/10 (resumen con 3 barras) -->
             <Border Style="{StaticResource Tarjeta}">
                 <VerticalStackLayout Spacing="8">
                     <Grid>
@@ -136,7 +128,6 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- ===== Recomendación IA (se completa en el Sprint 4: PB21/PB22) ===== -->
             <Border Style="{StaticResource Tarjeta}">
                 <VerticalStackLayout Spacing="4">
                     <Label Text="RECOMENDACIÓN IA"
@@ -148,7 +139,6 @@
                 </VerticalStackLayout>
             </Border>
 
-            <!-- ===== Últimos movimientos ===== -->
             <Label Text="Últimos movimientos"
                    Style="{StaticResource EtiquetaCampo}"
                    FontSize="15"

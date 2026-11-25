@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!--
-    BarraInferior.xaml
-    Barra de navegación inferior de GastoFácil (Inicio, Regla, Estadísticas, IA, Ajustes).
-    Reemplaza la barra de pestañas nativa del Shell, que en Windows aparece arriba.
-    Las páginas la usan con la plantilla "PlantillaConBarra" (App.xaml):
-        ControlTemplate="{StaticResource PlantillaConBarra}"
-    Íconos: trazos vectoriales (Material Design Icons, licencia Apache 2.0).
--->
+<!-- Barra de navegación inferior. Reemplaza la del Shell, que en Windows aparece arriba. Íconos: Material Design Icons (Apache 2.0). -->
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MovilAppProject.Views.BarraInferior">
@@ -96,7 +89,7 @@
                        HorizontalTextAlignment="Center"/>
             </VerticalStackLayout>
 
-            <!-- IA: recomendaciones (PB22) -->
+            <!-- IA: recomendaciones -->
             <VerticalStackLayout Grid.Column="3"
                                  Spacing="2"
                                  HorizontalOptions="Center"

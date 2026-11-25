@@ -1,27 +1,23 @@
 namespace MovilAppProject.Views;
 
-// PB17 · MAP-17 · Pantalla de ajustes
-// Validaciones V16 (PIN de 4 dígitos) y V17 (los PIN deben coincidir).
-// El interruptor se guarda en Preferences y el PIN en SecureStorage (RNF05),
-// así se conservan al cerrar la app. PB18 (vDesbloqueo) lee ambos.
-// PB20 · Recordatorios locales: V20 (texto), V21 (hora 20:00), V22 (frecuencia), V23 (permiso).
+// Ajustes: PIN, recordatorios, perfil de la regla e inactivación de la cuenta (PB17, PB20, PB27).
 public partial class vAjustes : ContentPage
 {
-    // Claves de Preferences (las usa también PB18)
+    // Claves de Preferences
     public const string ClaveBloqueo = "BloqueoActivo";
     public const string ClaveRecordatorios = "RecordatoriosActivos";
 
     // Evita que el evento Toggled se ejecute cuando el código mueve el Switch
     bool cargando = false;
 
-    // D20: true si el formulario del PIN se abrió para cambiarlo (no para activar el bloqueo)
+    // true si el formulario del PIN se abrió para cambiarlo (no para activar el bloqueo)
     bool cambiandoPin = false;
 
     public vAjustes()
     {
         InitializeComponent();
 
-        // PB20: frecuencias del recordatorio (V22)
+        // Frecuencias del recordatorio (V22)
         pkFrecuencia.ItemsSource = Services.RecordatorioService.Frecuencias;
     }
 
@@ -32,7 +28,7 @@ public partial class vAjustes : ContentPage
 
         cargando = true;
         lblUsuarioActual.Text = "Usuario: " + Utils.Sesion.NombreUsuario;
-        // PB20: el interruptor queda encendido solo si hay un recordatorio programado
+        // El interruptor queda encendido solo si hay un recordatorio programado
         swRecordatorios.IsToggled = Preferences.Get(ClaveRecordatorios, false)
                                     && App.RecordatorioService.HayRecordatorio;
         cargando = false;
@@ -42,7 +38,6 @@ public partial class vAjustes : ContentPage
         MostrarRecordatorioActual();
     }
 
-    // ===== Guardar PIN =====
     private async void btnGuardarPin_Clicked(object sender, EventArgs e)
     {
         try
@@ -82,14 +77,13 @@ public partial class vAjustes : ContentPage
         }
     }
 
-    // ===== Cancelar: no se guarda nada y el interruptor vuelve a como estaba =====
+    // Cancelar: no se guarda nada y el interruptor vuelve a como estaba
     // (al cambiar el PIN, se conserva el PIN anterior)
     private void btnCancelarPin_Clicked(object sender, EventArgs e)
     {
         ApagarBloqueo();
     }
 
-    // ===== D20: Cambiar PIN =====
     // Solo con el bloqueo activo. Pide el PIN actual antes de dejar escribir uno nuevo,
     // así nadie con el teléfono desbloqueado puede reemplazarlo.
     private async void btnCambiarPin_Clicked(object sender, EventArgs e)
@@ -110,7 +104,6 @@ public partial class vAjustes : ContentPage
         }
     }
 
-    // ===== Cuenta: inactivar (borrado lógico) =====
     // La cuenta queda inactiva con fecha de baja y sus datos se conservan en el historial.
     // Después se muestra el registro para crear otro usuario en este dispositivo.
     private async void btnInactivarCuenta_Clicked(object sender, EventArgs e)
@@ -133,7 +126,7 @@ public partial class vAjustes : ContentPage
             Utils.PinStorage.Borrar();
             Preferences.Set(ClaveBloqueo, false);
             Utils.Sesion.Cerrar();
-            // PB27: la cuenta queda inactiva (activo = 0, fecha de baja) también en el servidor
+            // La cuenta queda inactiva (activo = 0, fecha de baja) también en el servidor
             _ = Services.ServicioWeb.SincronizarAsync();
             await DisplayAlertAsync("Ajustes", "Cuenta inactivada.", "Aceptar");
             // Se reconstruye la app: sin usuario activo muestra el registro
@@ -144,7 +137,6 @@ public partial class vAjustes : ContentPage
             await DisplayAlertAsync("Error", ex.Message, "Aceptar");
         }
     }
-    // ===== Recordatorios (PB20) =====
     private async void swRecordatorios_Toggled(object sender, ToggledEventArgs e)
     {
         if (cargando)
@@ -180,7 +172,6 @@ public partial class vAjustes : ContentPage
         }
     }
 
-    // ===== Guardar recordatorio =====
     private async void btnGuardarRecordatorio_Clicked(object sender, EventArgs e)
     {
         try
@@ -214,16 +205,15 @@ public partial class vAjustes : ContentPage
         }
     }
 
-    // ===== Cancelar: no se guarda nada y el interruptor vuelve a como estaba =====
+    // Cancelar: no se guarda nada y el interruptor vuelve a como estaba
     private void btnCancelarRecordatorio_Clicked(object sender, EventArgs e)
     {
         ApagarRecordatorios();
     }
 
-    // ===== Regla 50/40/10 =====
     private async void btnPorcentajes_Clicked(object sender, EventArgs e)
     {
-        // PB15: abre la pantalla de perfiles de porcentajes
+        // Abre la pantalla de perfiles de porcentajes
         try
         {
             await Navigation.PushAsync(new vPorcentajes());
@@ -234,7 +224,7 @@ public partial class vAjustes : ContentPage
         }
     }
 
-    // D19: verifica que quien desactiva el bloqueo es el dueño.
+    // Verifica que quien desactiva el bloqueo es el dueño.
     // Primero la huella (si el dispositivo la tiene); si no, o si falla, el PIN guardado.
     private async Task<bool> ConfirmarIdentidadAsync()
     {
@@ -247,7 +237,7 @@ public partial class vAjustes : ContentPage
         return await VerificarPinActualAsync("Inactivar cuenta", "Ingresa tu PIN para inactivar la cuenta.");
     }
 
-    // D19 / D20: pide el PIN guardado y devuelve true solo si es correcto.
+    // Pide el PIN guardado y devuelve true solo si es correcto.
     // Cancelar, un PIN con otro formato (V16) o un PIN distinto devuelven false.
     private async Task<bool> VerificarPinActualAsync(string titulo, string mensaje)
     {
@@ -255,7 +245,6 @@ public partial class vAjustes : ContentPage
                                                "Aceptar", "Cancelar",
                                                "4 dígitos", 4, Keyboard.Numeric);
 
-        // Canceló: no se cambia nada
         if (pin is null)
         {
             return false;
@@ -290,7 +279,7 @@ public partial class vAjustes : ContentPage
         OcultarFormularioPin();
     }
 
-    // PB20: muestra el formulario con el recordatorio guardado (o 20:00 por defecto, V21)
+    // Muestra el formulario con el recordatorio guardado (o 20:00 por defecto, V21)
     private void AbrirFormularioRecordatorio()
     {
         txtRecordatorio.Text = App.RecordatorioService.ObtenerTexto();
@@ -303,13 +292,13 @@ public partial class vAjustes : ContentPage
         txtRecordatorio.Focus();
     }
 
-    // PB20: esconde el formulario del recordatorio
+    // Esconde el formulario del recordatorio
     private void OcultarFormularioRecordatorio()
     {
         slRecordatorio.IsVisible = false;
     }
 
-    // PB20: el interruptor vuelve a su estado guardado sin disparar el evento Toggled
+    // El interruptor vuelve a su estado guardado sin disparar el evento Toggled
     private void ApagarRecordatorios()
     {
         cargando = true;
@@ -321,7 +310,7 @@ public partial class vAjustes : ContentPage
         MostrarRecordatorioActual();
     }
 
-    // PB20: "Registrar ahorro · 20:00 · Semanal"
+    // "Registrar ahorro · 20:00 · Semanal"
     private void MostrarRecordatorioActual()
     {
         if (!App.RecordatorioService.HayRecordatorio)
@@ -348,7 +337,7 @@ public partial class vAjustes : ContentPage
     }
 
     // Esconde el formulario y limpia los PIN escritos.
-    // "Cambiar PIN" solo se ve si el bloqueo está activo (D20).
+    // "Cambiar PIN" solo se ve si el bloqueo está activo.
     private void OcultarFormularioPin()
     {
         txtPin.Text = "";

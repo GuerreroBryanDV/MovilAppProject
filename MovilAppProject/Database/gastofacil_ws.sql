@@ -1,4 +1,4 @@
--- PB25 · MAP-25 · Respaldo de la base de GastoFácil en MySQL (XAMPP)
+-- Base de respaldo de GastoFácil en MySQL (PB25)
 -- Importar en phpMyAdmin: pestaña "Importar" > este archivo > "Continuar".
 -- Las tablas tienen los mismos datos que la base SQLite de la app
 -- (grupo_presupuesto, categoria, usuario y movimiento) y los mismos Id.
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS categoria (
   FOREIGN KEY (grupo_id) REFERENCES grupo_presupuesto(codigo)
 );
 
--- PB27 · Usuarios del login (uno activo por dispositivo). Borrado lógico: activo = 0 y fecha_baja.
+-- Usuarios del login (uno activo por dispositivo). Borrado lógico: activo = 0 y fecha_baja.
 -- La contraseña y el PIN no se guardan aquí: se quedan cifrados en el teléfono.
 CREATE TABLE IF NOT EXISTS usuario (
   uid            VARCHAR(36) PRIMARY KEY,
@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS movimiento (
   categoria_id INT NOT NULL,
   fecha        DATE NOT NULL,
   nota         VARCHAR(100) NULL,
-  usuario_uid  VARCHAR(36) NULL,               -- PB27: dueño (NULL = anterior al login)
+  usuario_uid  VARCHAR(36) NULL,               -- Dueño (NULL = anterior al login)
   FOREIGN KEY (categoria_id) REFERENCES categoria(codigo),
   FOREIGN KEY (usuario_uid) REFERENCES usuario(uid)
 );

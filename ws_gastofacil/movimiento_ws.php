@@ -1,6 +1,5 @@
 <?php
-// PB25 · MAP-25 · Servicio web de movimientos de GastoFácil
-// Mismo patrón que ws_estudiante (Semana 6):
+// Servicio web de movimientos (PB25)
 //   GET    -> lista todos o uno (?codigo=)
 //   POST   -> inserta (datos en $_POST)
 //   PUT    -> actualiza (datos en la URL, $_GET)
@@ -9,11 +8,11 @@ include "config.php";
 include "utils.php";
 
 $dbConn = connect($db);
-migrar($dbConn);  // PB27: tabla usuario y columna usuario_uid
+migrar($dbConn);  // Tabla usuario y columna usuario_uid
 header('Content-Type: application/json; charset=utf-8');
 
 // Columnas que se pueden guardar (evita nombres de columna inventados)
-// PB27: usuario_uid = dueño del movimiento (tabla usuario)
+// usuario_uid = dueño del movimiento (tabla usuario)
 $columnas = ['codigo', 'tipo', 'monto', 'categoria_id', 'fecha', 'nota', 'usuario_uid'];
 
 function soloColumnas($input, $columnas)
@@ -27,7 +26,6 @@ function soloColumnas($input, $columnas)
     return $datos;
 }
 
-// ===== Listar =====
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     if (isset($_GET['codigo'])) {
         $sql = $dbConn->prepare("SELECT * FROM movimiento WHERE codigo=:codigo");
@@ -46,7 +44,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     }
 }
 
-// ===== Insertar =====
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $input = soloColumnas($_POST, $columnas);
     $sql = "INSERT INTO movimiento (codigo, tipo, monto, categoria_id, fecha, nota, usuario_uid)
@@ -65,7 +62,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     exit();
 }
 
-// ===== Actualizar =====
 if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
     $input = soloColumnas($_GET, $columnas);
     $codigo = $input['codigo'];
@@ -86,7 +82,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
     exit();
 }
 
-// ===== Eliminar =====
 if ($_SERVER['REQUEST_METHOD'] == 'DELETE') {
     $codigo = $_GET['codigo'];
     $statement = $dbConn->prepare("DELETE FROM movimiento WHERE codigo=:codigo");

@@ -1,13 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<!--
-    vPreguntaIA.xaml  (PB23 · MAP-23 · Preguntar a la IA)
-    Componente "Pregúntale a la IA" del mockup de Recomendaciones IA.
-    Es un ContentView: se agrega dentro de vRecomendaciones (PB22) con una línea:
-        <views:vPreguntaIA/>
-    V25: pregunta de 5 a 200 caracteres.
-    V26: el botón Enviar se deshabilita mientras espera (IAService corta a los 30 s).
-    La respuesta viene de App.IAService.PreguntarAsync (PB21).
--->
+<!-- Componente para preguntar a la IA (PB23); va dentro de vRecomendaciones. -->
 <ContentView xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MovilAppProject.Views.vPreguntaIA">

@@ -1,15 +1,14 @@
 <?php
-// PB27 · Servicio web de usuarios de GastoFácil (respaldo del login)
+// Servicio web de usuarios del inicio de sesión (PB27)
 //   GET  -> lista los usuarios (activos e inactivos)
 //   POST -> inserta o actualiza un usuario por su uid (alta, o inactivación = borrado lógico)
-// La contraseña y el PIN NO se envían: se quedan cifrados en el teléfono.
+// La contraseña y el PIN no se envían: se quedan cifrados en el teléfono.
 include "config.php";
 include "utils.php";
 $dbConn = connect($db);
 migrar($dbConn);
 header('Content-Type: application/json; charset=utf-8');
 
-// ===== Listar =====
 if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     $sql = $dbConn->prepare("SELECT uid, nombre, activo, fecha_creacion, fecha_baja
                              FROM usuario ORDER BY fecha_creacion");
@@ -20,7 +19,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
     exit();
 }
 
-// ===== Insertar o actualizar =====
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (empty($_POST['uid']) || empty($_POST['nombre']) || empty($_POST['fecha_creacion'])) {
         header("HTTP/1.1 400 Bad Request");

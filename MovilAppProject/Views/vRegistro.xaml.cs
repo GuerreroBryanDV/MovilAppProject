@@ -67,7 +67,7 @@ public partial class vRegistro : ContentPage
             // El PIN va a SecureStorage (cifrado)
             await PinStorage.GuardarAsync(pin);
             Sesion.Iniciar(usuario.Id, usuario.Nombre);
-            // PB27: respalda el usuario y le asigna en el servidor los movimientos anteriores al login
+            // Respalda el usuario y le asigna en el servidor los movimientos anteriores al login
             _ = Services.ServicioWeb.SincronizarAsync();
             Sesion.BloqueoVisible = false;
             await DisplayAlertAsync("Éxito", "Cuenta creada. Bienvenido, " + usuario.Nombre + ".", "Aceptar");

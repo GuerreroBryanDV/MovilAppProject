@@ -1,7 +1,6 @@
 namespace MovilAppProject.Utils
 {
-    // PB17 / PB18 · El PIN se guarda en SecureStorage (Keystore en Android, Keychain en iOS)
-    // y no en Preferences, porque Preferences es texto plano (RNF05, Analisis_BD 2.3).
+    // El PIN se guarda en SecureStorage (Keystore en Android) y no en Preferences, que es texto plano.
     public static class PinStorage
     {
         // Nombre de la clave dentro de SecureStorage
