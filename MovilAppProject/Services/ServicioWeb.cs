@@ -49,13 +49,13 @@ namespace MovilAppProject.Services
         // ===== Envíos de una operación (se llaman desde vMovimiento) =====
 
         public static Task AgregarAsync(Movimiento m) =>
-            EjecutarAsync(() => Enviar(m, "POST"));
+            EjecutarAsync(() => { Enviar(m, "POST"); });
 
         public static Task ActualizarAsync(Movimiento m) =>
-            EjecutarAsync(() => Enviar(m, "PUT"));
+            EjecutarAsync(() => { Enviar(m, "PUT"); });
 
         public static Task EliminarAsync(int id) =>
-            EjecutarAsync(() => Eliminar(id));
+            EjecutarAsync(() => { Eliminar(id); });
 
         // ===== Sincronización completa (se llama al abrir vInicio) =====
         // Deja MySQL igual que SQLite: inserta lo que falta, actualiza lo que
@@ -66,7 +66,11 @@ namespace MovilAppProject.Services
             try
             {
                 List<Movimiento> locales = App.MovimientoRepo.ListarTodos();
-                List<MovimientoWS> servidor = await ListarServidorAsync();
+                List<MovimientoWS>? servidor = await ListarServidorAsync();
+
+                // XAMPP apagado o sin red: se intenta en la siguiente sincronización
+                if (servidor == null)
+                    return;
 
                 Dictionary<int, MovimientoWS> enServidor = servidor.ToDictionary(s => s.codigo);
                 HashSet<int> idsLocales = locales.Select(l => l.Id).ToHashSet();
@@ -102,10 +106,19 @@ namespace MovilAppProject.Services
         }
 
         // GET: lista de movimientos guardados en MySQL
-        public static async Task<List<MovimientoWS>> ListarServidorAsync()
+        // Devuelve null si no se pudo conectar
+        public static async Task<List<MovimientoWS>?> ListarServidorAsync()
         {
-            string contenido = await cliente.GetStringAsync(Url);
-            return JsonConvert.DeserializeObject<List<MovimientoWS>>(contenido) ?? new List<MovimientoWS>();
+            try
+            {
+                string contenido = await cliente.GetStringAsync(Url);
+                return JsonConvert.DeserializeObject<List<MovimientoWS>>(contenido) ?? new List<MovimientoWS>();
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = "Error: " + ex.Message;
+                return null;
+            }
         }
 
         // ---------------- Auxiliares ----------------
@@ -116,7 +129,6 @@ namespace MovilAppProject.Services
             try
             {
                 await Task.Run(accion);
-                StatusMessage = "Enviado al servidor";
             }
             catch (Exception ex)
             {
@@ -142,28 +154,51 @@ namespace MovilAppProject.Services
         }
 
 #pragma warning disable SYSLIB0014 // WebClient: es el que se usó en la Semana 6
-        private static void Enviar(Movimiento m, string metodo)
+        // Los errores (XAMPP apagado, sin red) se atrapan aquí mismo para que
+        // Visual Studio no detenga la app y para que SQLite siga funcionando.
+        private static bool Enviar(Movimiento m, string metodo)
         {
-            NameValueCollection parametros = Parametros(m);
-            using WebClient web = new();
+            try
+            {
+                NameValueCollection parametros = Parametros(m);
+                using WebClient web = new();
 
-            if (metodo == "POST")
-            {
-                web.UploadValues(Url, "POST", parametros);
+                if (metodo == "POST")
+                {
+                    web.UploadValues(Url, "POST", parametros);
+                }
+                else
+                {
+                    // PUT: igual que en vActualizarEliminar, los datos van en la URL
+                    string query = string.Join("&", parametros.AllKeys.Select(k =>
+                        k + "=" + Uri.EscapeDataString(parametros[k] ?? "")));
+                    web.UploadValues(Url + "?" + query, "PUT", new NameValueCollection());
+                }
+
+                StatusMessage = "Enviado al servidor";
+                return true;
             }
-            else
+            catch (Exception ex)
             {
-                // PUT: igual que en vActualizarEliminar, los datos van en la URL
-                string query = string.Join("&", parametros.AllKeys.Select(k =>
-                    k + "=" + Uri.EscapeDataString(parametros[k] ?? "")));
-                web.UploadValues(Url + "?" + query, "PUT", new NameValueCollection());
+                StatusMessage = "Error: " + ex.Message;
+                return false;
             }
         }
 
-        private static void Eliminar(int id)
+        private static bool Eliminar(int id)
         {
-            using WebClient web = new();
-            web.UploadValues(Url + "?codigo=" + id, "DELETE", new NameValueCollection());
+            try
+            {
+                using WebClient web = new();
+                web.UploadValues(Url + "?codigo=" + id, "DELETE", new NameValueCollection());
+                StatusMessage = "Eliminado en el servidor";
+                return true;
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = "Error: " + ex.Message;
+                return false;
+            }
         }
 #pragma warning restore SYSLIB0014
 
