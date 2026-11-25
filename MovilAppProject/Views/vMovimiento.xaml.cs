@@ -1,11 +1,13 @@
 ﻿using System.Globalization;
 using MovilAppProject.Models;
+using MovilAppProject.Services;
 
 namespace MovilAppProject.Views;
 
 // PB05 · MAP-5 · HU1 Registrar gasto  /  PB07 · guardado en SQLite
 // PB09 · Editar movimiento  /  PB10 · Eliminar movimiento con confirmación
 // Validaciones V01 a V09 de la hoja "Validaciones" del Product Backlog.
+// PB25: después de guardar o eliminar en SQLite, se envía también al servicio web (MySQL).
 // PB24: solo se muestran los mensajes de esa hoja, con DisplayAlert("Error", mensaje, "Aceptar").
 public partial class vMovimiento : ContentPage
 {
@@ -224,12 +226,20 @@ public partial class vMovimiento : ContentPage
             {
                 // Nuevo movimiento (PB05)
                 guardado = App.MovimientoRepo.AgregarMovimiento(movimiento);
+
+                // PB25: POST al servicio web (Insert ya le puso el Id de SQLite)
+                if (guardado)
+                    _ = ServicioWeb.AgregarAsync(movimiento);
             }
             else
             {
                 // PB09: se actualiza el mismo registro (por su Id)
                 movimiento.Id = _movimientoEditar.Id;
                 guardado = App.MovimientoRepo.EditarMovimiento(movimiento);
+
+                // PB25: PUT al servicio web
+                if (guardado)
+                    _ = ServicioWeb.ActualizarAsync(movimiento);
             }
 
             if (!guardado)
@@ -273,6 +283,9 @@ public partial class vMovimiento : ContentPage
                 await DisplayAlertAsync("Error", MensajeRepositorio(), "Aceptar");
                 return;
             }
+
+            // PB25: DELETE en el servicio web
+            _ = ServicioWeb.EliminarAsync(_movimientoEditar.Id);
 
             await DisplayAlertAsync("Éxito", MensajeRepositorio(), "Aceptar");
 
