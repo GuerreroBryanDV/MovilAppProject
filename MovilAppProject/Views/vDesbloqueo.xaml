@@ -44,6 +44,11 @@
                          HeightRequest="30"/>
             </Grid>
 
+            <Label x:Name="lblUsuario"
+                   FontSize="18"
+                   FontAttributes="Bold"
+                   TextColor="{StaticResource Primary}"
+                   HorizontalOptions="Center"/>
             <Label x:Name="lblInstruccion"
                    Text="Desbloquea con tu huella o Face ID"
                    FontSize="15"
@@ -61,7 +66,34 @@
                     Text="Usar PIN"
                     Clicked="btnUsarPin_Clicked"
                     Style="{StaticResource BotonSecundario}"/>
+            <Button x:Name="btnUsarPassword"
+                    Text="Usar contraseña"
+                    Clicked="btnUsarPassword_Clicked"
+                    Style="{StaticResource BotonSecundario}"/>
+            <!-- Motivo por el que no hay huella o rostro (si aplica) -->
+            <Label x:Name="lblAvisoBiometria"
+                   FontSize="12"
+                   TextColor="{StaticResource Gray500}"
+                   HorizontalTextAlignment="Center"
+                   IsVisible="False"/>
 
+            <!-- Ingreso de la contraseña -->
+            <VerticalStackLayout x:Name="slPassword"
+                                 Spacing="10"
+                                 IsVisible="False">
+                <Label Text="Contraseña"
+                       Style="{StaticResource EtiquetaCampo}"/>
+                <Border Style="{StaticResource CampoFormulario}">
+                    <Entry x:Name="txtPassword"
+                           Placeholder="Tu contraseña"
+                           IsPassword="True"
+                           Completed="btnIngresarPassword_Clicked"/>
+                </Border>
+                <Button x:Name="btnIngresarPassword"
+                        Text="Ingresar"
+                        Clicked="btnIngresarPassword_Clicked"
+                        Style="{StaticResource BotonPrimario}"/>
+            </VerticalStackLayout>
             <!-- Ingreso del PIN -->
             <VerticalStackLayout x:Name="slPin"
                                  Spacing="10"
@@ -83,14 +115,10 @@
                         Text="Desbloquear"
                         Clicked="btnDesbloquear_Clicked"
                         Style="{StaticResource BotonPrimario}"/>
-
-                <!-- V18: cuenta regresiva de 30 segundos -->
-                <Label x:Name="lblEspera"
-                       Style="{StaticResource MontoGasto}"
-                       HorizontalOptions="Center"
-                       IsVisible="False"/>
             </VerticalStackLayout>
 
+            <!-- V18: cuenta regresiva de 30 segundos -->
+            <Label x:Name="lblEspera" Style="{StaticResource MontoGasto}" HorizontalOptions="Center" IsVisible="False"/>
         </VerticalStackLayout>
     </ScrollView>
 

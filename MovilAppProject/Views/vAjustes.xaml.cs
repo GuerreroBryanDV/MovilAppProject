@@ -31,7 +31,7 @@ public partial class vAjustes : ContentPage
         base.OnAppearing();
 
         cargando = true;
-        swBloqueo.IsToggled = Preferences.Get(ClaveBloqueo, false);
+        lblUsuarioActual.Text = "Usuario: " + Utils.Sesion.NombreUsuario;
         // PB20: el interruptor queda encendido solo si hay un recordatorio programado
         swRecordatorios.IsToggled = Preferences.Get(ClaveRecordatorios, false)
                                     && App.RecordatorioService.HayRecordatorio;
@@ -40,49 +40,6 @@ public partial class vAjustes : ContentPage
         OcultarFormularioPin();
         OcultarFormularioRecordatorio();
         MostrarRecordatorioActual();
-    }
-
-    // ===== Bloqueo de la app =====
-    private async void swBloqueo_Toggled(object sender, ToggledEventArgs e)
-    {
-        if (cargando)
-        {
-            return;
-        }
-
-        try
-        {
-            if (e.Value)
-            {
-                // Al activar se piden Nuevo PIN y Confirmar PIN
-                MostrarFormularioPin();
-            }
-            else
-            {
-                OcultarFormularioPin();
-
-                if (Preferences.Get(ClaveBloqueo, false))
-                {
-                    // D19: para quitar el bloqueo hay que verificar la identidad (huella o PIN).
-                    // Si no se verifica, el interruptor vuelve a encendido y el bloqueo sigue.
-                    if (!await ConfirmarIdentidadAsync())
-                    {
-                        ApagarBloqueo();
-                        return;
-                    }
-
-                    // Al desactivar se borra el PIN guardado
-                    Preferences.Set(ClaveBloqueo, false);
-                    Utils.PinStorage.Borrar();
-                    OcultarFormularioPin();
-                    await DisplayAlertAsync("Ajustes", "Bloqueo desactivado.", "Aceptar");
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlertAsync("Error", ex.Message, "Aceptar");
-        }
     }
 
     // ===== Guardar PIN =====
@@ -153,6 +110,38 @@ public partial class vAjustes : ContentPage
         }
     }
 
+    // ===== Cuenta: inactivar (borrado lógico) =====
+    // La cuenta queda inactiva con fecha de baja y sus datos se conservan en el historial.
+    // Después se muestra el registro para crear otro usuario en este dispositivo.
+    private async void btnInactivarCuenta_Clicked(object sender, EventArgs e)
+    {
+        try
+        {
+            bool confirmar = await DisplayAlertAsync("¿Inactivar tu cuenta?",
+                "Se cerrará tu sesión y podrás registrar otro usuario. Tus datos se conservan en el historial.",
+                "Inactivar", "Cancelar");
+            if (!confirmar || !await ConfirmarIdentidadAsync())
+            {
+                return;
+            }
+            if (!App.MovimientoRepo.InactivarUsuarioActivo())
+            {
+                await DisplayAlertAsync("Error", App.MovimientoRepo.StatusMessage, "Aceptar");
+                return;
+            }
+            // El PIN pertenece al usuario anterior
+            Utils.PinStorage.Borrar();
+            Preferences.Set(ClaveBloqueo, false);
+            Utils.Sesion.Cerrar();
+            await DisplayAlertAsync("Ajustes", "Cuenta inactivada.", "Aceptar");
+            // Se reconstruye la app: sin usuario activo muestra el registro
+            Application.Current!.Windows[0].Page = new AppShell();
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlertAsync("Error", ex.Message, "Aceptar");
+        }
+    }
     // ===== Recordatorios (PB20) =====
     private async void swRecordatorios_Toggled(object sender, ToggledEventArgs e)
     {
@@ -248,12 +237,12 @@ public partial class vAjustes : ContentPage
     private async Task<bool> ConfirmarIdentidadAsync()
     {
         if (await Utils.Biometria.DisponibleAsync()
-            && await Utils.Biometria.AutenticarAsync("Confirma tu identidad para desactivar el bloqueo."))
+            && await Utils.Biometria.AutenticarAsync("Confirma tu identidad para inactivar la cuenta."))
         {
             return true;
         }
 
-        return await VerificarPinActualAsync("Desactivar bloqueo", "Ingresa tu PIN para desactivar el bloqueo.");
+        return await VerificarPinActualAsync("Inactivar cuenta", "Ingresa tu PIN para inactivar la cuenta.");
     }
 
     // D19 / D20: pide el PIN guardado y devuelve true solo si es correcto.
@@ -293,7 +282,7 @@ public partial class vAjustes : ContentPage
     private void ApagarBloqueo()
     {
         cargando = true;
-        swBloqueo.IsToggled = Preferences.Get(ClaveBloqueo, false);
+        lblUsuarioActual.Text = "Usuario: " + Utils.Sesion.NombreUsuario;
         cargando = false;
 
         OcultarFormularioPin();
@@ -364,7 +353,7 @@ public partial class vAjustes : ContentPage
         txtConfirmarPin.Text = "";
         slPin.IsVisible = false;
         cambiandoPin = false;
-        btnCambiarPin.IsVisible = Preferences.Get(ClaveBloqueo, false);
+        btnCambiarPin.IsVisible = true;
     }
 
     // V16: true si el texto tiene exactamente 4 números

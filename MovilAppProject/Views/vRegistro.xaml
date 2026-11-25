@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!--
+    vRegistro.xaml
+    Primer uso de la app: crea al único usuario de este dispositivo (usuario, contraseña y PIN).
+    Después la app pide login (contraseña, PIN o huella/rostro) al abrirla y tras un tiempo sin actividad.
+-->
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="MovilAppProject.Views.vRegistro"
+             Title="Crear cuenta">
+    <ScrollView>
+        <VerticalStackLayout Padding="30,50,30,30" Spacing="10">
+            <Label Text="GastoFácil"
+                   Style="{StaticResource TituloPagina}"
+                   FontSize="28"
+                   HorizontalOptions="Center"/>
+            <Label Text="Crea tu cuenta. Solo este usuario podrá entrar en este dispositivo."
+                   Style="{StaticResource TextoSecundario}"
+                   HorizontalOptions="Center"
+                   HorizontalTextAlignment="Center"/>
+            <Label Text="Usuario" Style="{StaticResource EtiquetaCampo}" Margin="0,16,0,0"/>
+            <Border Style="{StaticResource CampoFormulario}">
+                <Entry x:Name="txtUsuario" Placeholder="De 3 a 20 caracteres" MaxLength="20"/>
+            </Border>
+            <Label Text="Contraseña" Style="{StaticResource EtiquetaCampo}"/>
+            <Border Style="{StaticResource CampoFormulario}">
+                <Entry x:Name="txtPassword" Placeholder="Mínimo 6 caracteres, con letras y números" IsPassword="True" MaxLength="40"/>
+            </Border>
+            <Label Text="Confirmar contraseña" Style="{StaticResource EtiquetaCampo}"/>
+            <Border Style="{StaticResource CampoFormulario}">
+                <Entry x:Name="txtConfirmarPassword" Placeholder="Repite la contraseña" IsPassword="True" MaxLength="40"/>
+            </Border>
+            <Label Text="PIN" Style="{StaticResource EtiquetaCampo}"/>
+            <Border Style="{StaticResource CampoFormulario}">
+                <Entry x:Name="txtPin" Placeholder="4 dígitos" IsPassword="True" Keyboard="Numeric" MaxLength="4"/>
+            </Border>
+            <Label Text="Confirmar PIN" Style="{StaticResource EtiquetaCampo}"/>
+            <Border Style="{StaticResource CampoFormulario}">
+                <Entry x:Name="txtConfirmarPin" Placeholder="Repite el PIN" IsPassword="True" Keyboard="Numeric" MaxLength="4"/>
+            </Border>
+            <Button x:Name="btnCrear"
+                    Text="Crear cuenta"
+                    Clicked="btnCrear_Clicked"
+                    Style="{StaticResource BotonPrimario}"
+                    Margin="0,16,0,0"/>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

@@ -114,7 +114,8 @@ public partial class vInicio : ContentPage
             }
 
             // PB07: saldo = ingresos − gastos del mes (en rojo si es negativo)
-            decimal saldo = ingresos - egresos;
+            // El saldo es acumulado: incluye lo que sobró de los meses anteriores
+            decimal saldo = await Task.Run(() => App.MovimientoRepo.ObtenerSaldoAcumuladoHasta(mes.Year, mes.Month));
             lblSaldo.Text = FormatoMonto(saldo);
             if (saldo < 0)
             {

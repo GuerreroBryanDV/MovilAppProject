@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using MovilAppProject.Models;
 
 namespace MovilAppProject.Views;
@@ -219,6 +219,13 @@ public partial class vMovimiento : ContentPage
                 Nota = nota
             };
 
+            // Coherencia: un gasto no puede superar el saldo acumulado (ingresos - gastos de meses anteriores y del actual)
+            string? errorSaldo = App.MovimientoRepo.ValidarSaldo(movimiento, _movimientoEditar?.Id ?? 0);
+            if (errorSaldo != null)
+            {
+                await DisplayAlertAsync("Error", errorSaldo, "Aceptar");
+                return;
+            }
             bool guardado;
             if (_movimientoEditar == null)
             {
@@ -268,6 +275,13 @@ public partial class vMovimiento : ContentPage
                 return;
             }
 
+            // Coherencia: no se puede borrar un ingreso si los gastos quedarían sin respaldo
+            string? errorSaldo = App.MovimientoRepo.ValidarSaldo(null, _movimientoEditar.Id);
+            if (errorSaldo != null)
+            {
+                await DisplayAlertAsync("Error", errorSaldo, "Aceptar");
+                return;
+            }
             if (!App.MovimientoRepo.EliminarMovimiento(_movimientoEditar.Id))
             {
                 await DisplayAlertAsync("Error", MensajeRepositorio(), "Aceptar");

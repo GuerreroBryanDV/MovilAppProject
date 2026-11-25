@@ -1,4 +1,6 @@
+using System.Security.Cryptography;
 using MovilAppProject.Models;
+using MovilAppProject.Utils;
 using SQLite;
 
 namespace MovilAppProject.Repositories
@@ -34,6 +36,7 @@ namespace MovilAppProject.Repositories
             _conn.CreateTable<GrupoPresupuesto>();
             _conn.CreateTable<Categoria>();
             _conn.CreateTable<Movimiento>();
+            _conn.CreateTable<Usuario>();
 
             CargarDatosPredefinidos(_conn);
 
@@ -97,6 +100,7 @@ namespace MovilAppProject.Repositories
                 int result;
                 lock (_bloqueo)
                 {
+                    movimiento.UsuarioId = Sesion.UsuarioId;
                     result = _conn!.Insert(movimiento);
                 }
                 if (result == 0)
@@ -122,6 +126,7 @@ namespace MovilAppProject.Repositories
                 int result;
                 lock (_bloqueo)
                 {
+                    movimiento.UsuarioId = Sesion.UsuarioId;
                     result = _conn!.Update(movimiento);
                 }
                 if (result == 0)
@@ -172,11 +177,12 @@ namespace MovilAppProject.Repositories
 
                 // PB19 (RNF04): el filtro y el orden los hace SQLite usando el índice de Fecha,
                 // así solo se leen los movimientos del mes y ya vienen ordenados.
+                int usuarioId = Sesion.UsuarioId;
                 List<Movimiento> movimientos;
                 lock (_bloqueo)
                 {
                     movimientos = _conn!.Table<Movimiento>()
-                        .Where(m => m.Fecha >= inicio && m.Fecha < fin)
+                        .Where(m => m.Fecha >= inicio && m.Fecha < fin && m.UsuarioId == usuarioId)
                         .OrderByDescending(m => m.Fecha)
                         .ThenByDescending(m => m.Id)
                         .ToList();
@@ -227,6 +233,204 @@ namespace MovilAppProject.Repositories
             return ObtenerIngresosDelMes(anio, mes) - ObtenerGastosDelMes(anio, mes);
         }
 
+        // ---------------- Saldo acumulado y coherencia (gasto <= ingresos) ----------------
+
+        // Saldo acumulado: ingresos - gastos de TODOS los movimientos hasta el final del mes indicado.
+        // Así lo que sobra de un mes pasa al siguiente.
+        public decimal ObtenerSaldoAcumuladoHasta(int anio, int mes)
+        {
+            try
+            {
+                Init();
+                DateTime fin = new DateTime(anio, mes, 1).AddMonths(1);
+                int usuarioId = Sesion.UsuarioId;
+                List<Movimiento> lista;
+                lock (_bloqueo)
+                {
+                    lista = _conn!.Table<Movimiento>().Where(m => m.Fecha < fin && m.UsuarioId == usuarioId).ToList();
+                }
+                return lista.Sum(m => m.Tipo == TipoMovimiento.Ingreso ? m.Monto : -m.Monto);
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = "Error: " + ex.Message;
+                return 0;
+            }
+        }
+
+        // Valida que, al guardar o borrar un movimiento, el saldo acumulado no quede negativo
+        // en ningún mes (el saldo de cada mes incluye lo que sobró de los anteriores).
+        // nuevo: el movimiento que se guardará (null si se está eliminando).
+        // idExcluir: Id del movimiento que se edita o elimina (0 si es uno nuevo).
+        // Devuelve null si todo está bien o el mensaje de error.
+        // Si los datos ya estaban negativos antes del cambio, solo se bloquea lo que lo empeore.
+        public string? ValidarSaldo(Movimiento? nuevo, int idExcluir)
+        {
+            try
+            {
+                Init();
+                int usuarioId = Sesion.UsuarioId;
+                List<Movimiento> todos;
+                lock (_bloqueo)
+                {
+                    todos = _conn!.Table<Movimiento>().Where(m => m.UsuarioId == usuarioId).ToList();
+                }
+                // Situación actual, con el movimiento original
+                List<Movimiento> antes = todos;
+                List<Movimiento> despues = todos.Where(m => m.Id != idExcluir).ToList();
+                if (nuevo != null)
+                {
+                    despues.Add(nuevo);
+                }
+                decimal minimoAntes = SaldoMinimoMensual(antes);
+                decimal minimoDespues = SaldoMinimoMensual(despues);
+                if (minimoDespues >= 0 || minimoDespues >= minimoAntes)
+                {
+                    return null;
+                }
+                if (nuevo != null && nuevo.Tipo == TipoMovimiento.Gasto)
+                {
+                    DateTime fin = new DateTime(nuevo.Fecha.Year, nuevo.Fecha.Month, 1).AddMonths(1);
+                    decimal disponible = despues.Where(m => m != nuevo && m.Fecha < fin)
+                        .Sum(m => m.Tipo == TipoMovimiento.Ingreso ? m.Monto : -m.Monto);
+                    if (disponible < 0)
+                    {
+                        disponible = 0;
+                    }
+                    return "El gasto supera tu saldo disponible de " + disponible.ToString("C2") + ".";
+                }
+                return "No se puede: tus gastos registrados superarían tus ingresos.";
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = "Error: " + ex.Message;
+                return "Error: " + ex.Message;
+            }
+        }
+
+        // Saldo acumulado más bajo al cierre de cada mes, desde el primer movimiento hasta el último
+        private static decimal SaldoMinimoMensual(List<Movimiento> movimientos)
+        {
+            if (movimientos.Count == 0)
+            {
+                return 0;
+            }
+            decimal acumulado = 0;
+            decimal minimo = decimal.MaxValue;
+            foreach (var mes in movimientos
+                .GroupBy(m => new DateTime(m.Fecha.Year, m.Fecha.Month, 1))
+                .OrderBy(g => g.Key))
+            {
+                acumulado += mes.Sum(m => m.Tipo == TipoMovimiento.Ingreso ? m.Monto : -m.Monto);
+                if (acumulado < minimo)
+                {
+                    minimo = acumulado;
+                }
+            }
+            return minimo;
+        }
+        // ---------------- Usuario (login tipo banco) ----------------
+
+        private const int IteracionesHash = 100_000;
+
+        // El usuario activo de este dispositivo (null si no hay ninguno registrado)
+        public Usuario? ObtenerUsuarioActivo()
+        {
+            try
+            {
+                Init();
+                lock (_bloqueo)
+                {
+                    return _conn!.Table<Usuario>().Where(u => u.Activo).FirstOrDefault();
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = "Error: " + ex.Message;
+                return null;
+            }
+        }
+
+        // Registra al único usuario del dispositivo. Los movimientos anteriores al login pasan a ser suyos.
+        public Usuario? RegistrarUsuario(string nombre, string contrasena)
+        {
+            try
+            {
+                Init();
+                if (ObtenerUsuarioActivo() != null)
+                {
+                    StatusMessage = "Error: ya hay un usuario activo en este dispositivo";
+                    return null;
+                }
+                byte[] sal = RandomNumberGenerator.GetBytes(16);
+                Usuario usuario = new()
+                {
+                    Nombre = nombre.Trim(),
+                    Sal = Convert.ToBase64String(sal),
+                    HashContrasena = CalcularHash(contrasena, sal)
+                };
+                lock (_bloqueo)
+                {
+                    _conn!.Insert(usuario);
+                    // Solo los movimientos sin dueño (de antes del login) se asignan al nuevo usuario
+                    _conn.Execute("UPDATE movimiento SET UsuarioId = ? WHERE UsuarioId = 0", usuario.Id);
+                }
+                StatusMessage = "Usuario registrado";
+                return usuario;
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = "Error: " + ex.Message;
+                return null;
+            }
+        }
+
+        // true si la contraseña coincide con la del usuario activo
+        public bool VerificarContrasena(string contrasena)
+        {
+            Usuario? usuario = ObtenerUsuarioActivo();
+            if (usuario == null)
+            {
+                return false;
+            }
+            byte[] sal = Convert.FromBase64String(usuario.Sal);
+            byte[] esperado = Convert.FromBase64String(usuario.HashContrasena);
+            byte[] actual = Convert.FromBase64String(CalcularHash(contrasena, sal));
+            return CryptographicOperations.FixedTimeEquals(esperado, actual);
+        }
+
+        // Borrado lógico: la cuenta queda inactiva y con fecha de baja; sus movimientos se conservan
+        public bool InactivarUsuarioActivo()
+        {
+            try
+            {
+                Init();
+                Usuario? usuario = ObtenerUsuarioActivo();
+                if (usuario == null)
+                {
+                    return false;
+                }
+                usuario.Activo = false;
+                usuario.FechaBaja = DateTime.Now;
+                lock (_bloqueo)
+                {
+                    _conn!.Update(usuario);
+                }
+                StatusMessage = "Cuenta inactivada";
+                return true;
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = "Error: " + ex.Message;
+                return false;
+            }
+        }
+
+        private static string CalcularHash(string contrasena, byte[] sal)
+        {
+            byte[] hash = Rfc2898DeriveBytes.Pbkdf2(contrasena, sal, IteracionesHash, HashAlgorithmName.SHA256, 32);
+            return Convert.ToBase64String(hash);
+        }
         // ---------------- Categorías ----------------
 
         // Categorías para el Picker cuando el tipo es Gasto (sin "Ingreso")

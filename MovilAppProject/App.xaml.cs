@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using MovilAppProject.Repositories;
 using MovilAppProject.Services;
 
@@ -48,7 +48,10 @@ namespace MovilAppProject
         // pantalla principal. Entre pantallas se sigue usando Navigation.PushAsync/PopAsync.
         protected override Window CreateWindow(IActivationState? activationState)
         {
-            return new Window(new AppShell());
+            Window window = new(new AppShell());
+            // Al volver de segundo plano se revisa si pasó el tiempo de inactividad
+            window.Resumed += (s, e) => (window.Page as AppShell)?.AlReanudar();
+            return window;
         }
     }
 }

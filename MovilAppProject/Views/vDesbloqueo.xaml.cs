@@ -1,87 +1,114 @@
+using MovilAppProject.Models;
 using MovilAppProject.Utils;
 
 namespace MovilAppProject.Views;
 
-// PB18 · MAP-18 · Bloqueo con huella, Face ID o PIN
-// Se abre desde AppShell al iniciar la app cuando el bloqueo está activo (vAjustes, PB17).
-// Validaciones V16 (formato del PIN), V18 (3 intentos y espera de 30 s) y V19 (huella).
+// Login tipo banco (PB18 ampliado). Se muestra al abrir la app y cuando pasan
+// Sesion.MinutosInactividad minutos sin actividad. Solo entra el usuario registrado en el
+// dispositivo, con su contraseña, su PIN o su huella/rostro.
+// Validaciones V16 (formato del PIN), V18 (3 intentos y espera de 30 s) y V19 (biometría).
 public partial class vDesbloqueo : ContentPage
 {
-    // V18: intentos permitidos y segundos de espera
+    // V18: intentos permitidos y segundos de espera (PIN y contraseña comparten el contador)
     const int maximoIntentos = 3;
     const int segundosEspera = 30;
 
-    // Errores de PIN acumulados
     int intentosFallidos = 0;
 
-    // V19: "Usar huella" solo se muestra si el dispositivo tiene biometría con datos registrados.
-    // Se detecta con Utils/Biometria (Plugin.Maui.Biometric, D16) al aparecer la pantalla.
     bool hayBiometria = false;
 
     public vDesbloqueo()
     {
         InitializeComponent();
-
+        Usuario? usuario = App.MovimientoRepo.ObtenerUsuarioActivo();
+        lblUsuario.Text = usuario == null ? "" : "Hola, " + usuario.Nombre;
         // Hasta saber si hay biometría se muestra solo el PIN (siempre disponible)
-        MostrarSoloPin();
-    }
-
-    // Sin huella: se muestra directamente el ingreso del PIN
-    private void MostrarSoloPin()
-    {
-        btnHuella.IsVisible = false;
-        lblInstruccion.Text = "Ingresa tu PIN para continuar.";
-        btnUsarPin.IsVisible = false;
-        slPin.IsVisible = true;
+        MostrarPin();
     }
 
     protected override async void OnAppearing()
     {
         base.OnAppearing();
-
         // V19: la huella solo aparece si el dispositivo la tiene y hay una registrada
-        hayBiometria = await Biometria.DisponibleAsync();
-
+        (bool disponible, string motivo) = await Biometria.EstadoAsync();
+        hayBiometria = disponible;
         if (hayBiometria)
         {
-            lblInstruccion.Text = "Desbloquea con tu huella o Face ID";
+            lblInstruccion.Text = "Desbloquea con tu huella o rostro";
             btnHuella.IsVisible = true;
-            btnUsarPin.IsVisible = true;
             slPin.IsVisible = false;
+            slPassword.IsVisible = false;
+            lblAvisoBiometria.IsVisible = false;
+        }
+        else
+        {
+            // Se explica por qué no hay biometría en vez de ocultar el botón sin avisar
+            lblAvisoBiometria.Text = motivo;
+            lblAvisoBiometria.IsVisible = true;
         }
     }
 
-    // El botón "atrás" de Android no puede saltarse el desbloqueo
+    // El botón "atrás" de Android no puede saltarse el login
     protected override bool OnBackButtonPressed()
     {
         return true;
     }
 
-    // ===== Usar huella (V19) =====
-    private async void btnHuella_Clicked(object sender, EventArgs e)
+    // Login correcto: se cierra esta pantalla y la app queda donde estaba
+    private async Task EntrarAsync()
     {
-        // Huella correcta: se cierra esta pantalla y se ve vInicio
-        if (await Biometria.AutenticarAsync("Verifica tu identidad para abrir la app."))
+        Usuario? usuario = App.MovimientoRepo.ObtenerUsuarioActivo();
+        if (usuario == null)
         {
-            await Navigation.PopModalAsync();
+            await DisplayAlertAsync("Error", "No hay un usuario registrado en este dispositivo.", "Aceptar");
             return;
         }
+        // Al abrir la app todavía no había usuario en memoria: las pantallas cargaron sin datos.
+        // Se reconstruye la app para que lean los del usuario. Tras una inactividad el usuario
+        // ya estaba en memoria y solo se cierra esta pantalla (no se pierde lo que se estaba haciendo).
+        bool primerLogin = Sesion.UsuarioId == 0;
+        Sesion.Iniciar(usuario.Id, usuario.Nombre);
+        Sesion.BloqueoVisible = false;
+        if (primerLogin)
+        {
+            Application.Current!.Windows[0].Page = new AppShell();
+            return;
+        }
+        await Navigation.PopModalAsync();
+    }
 
-        // V19: si la huella falla se pide el PIN
-        await DisplayAlertAsync("Error", "No se pudo verificar tu huella. Usa tu PIN.", "Aceptar");
+    // ===== Usar huella o rostro (V19) =====
+    private async void btnHuella_Clicked(object sender, EventArgs e)
+    {
+        if (await Biometria.AutenticarAsync("Verifica tu identidad para abrir la app."))
+        {
+            await EntrarAsync();
+            return;
+        }
+        // V19: si la biometría falla se pide el PIN
+        string detalle = string.IsNullOrWhiteSpace(Biometria.UltimoError) ? "" : " (" + Biometria.UltimoError + ")";
+        await DisplayAlertAsync("Error", "No se pudo verificar tu identidad" + detalle + ". Usa tu PIN o contraseña.", "Aceptar");
         MostrarPin();
     }
 
-    // ===== Usar PIN =====
     private void btnUsarPin_Clicked(object sender, EventArgs e)
     {
         MostrarPin();
     }
 
+    private void btnUsarPassword_Clicked(object sender, EventArgs e)
+    {
+        slPin.IsVisible = false;
+        slPassword.IsVisible = true;
+        lblInstruccion.Text = "Ingresa tu contraseña para continuar.";
+        txtPassword.Focus();
+    }
+
     private void MostrarPin()
     {
+        slPassword.IsVisible = false;
         slPin.IsVisible = true;
-        btnUsarPin.IsVisible = false;
+        lblInstruccion.Text = "Ingresa tu PIN para continuar.";
         txtPin.Focus();
     }
 
@@ -90,14 +117,11 @@ public partial class vDesbloqueo : ContentPage
     {
         try
         {
-            // Mientras corre la espera de 30 s no se acepta nada
             if (!btnDesbloquear.IsEnabled)
             {
                 return;
             }
-
             string pin = (txtPin.Text ?? "").Trim();
-
             // V16: el PIN tiene exactamente 4 dígitos (no cuenta como intento)
             if (!PinValido(pin))
             {
@@ -105,31 +129,15 @@ public partial class vDesbloqueo : ContentPage
                 txtPin.Text = "";
                 return;
             }
-
             // El PIN está en SecureStorage (RNF05)
-            string pinGuardado = await Utils.PinStorage.ObtenerAsync() ?? "";
-
-            // PIN correcto: se cierra esta pantalla y se ve vInicio
+            string pinGuardado = await PinStorage.ObtenerAsync() ?? "";
             if (pin == pinGuardado)
             {
-                await Navigation.PopModalAsync();
+                await EntrarAsync();
                 return;
             }
-
-            // V18: PIN incorrecto
-            intentosFallidos = intentosFallidos + 1;
             txtPin.Text = "";
-            int intentosRestantes = maximoIntentos - intentosFallidos;
-
-            if (intentosRestantes > 0)
-            {
-                await DisplayAlertAsync("Error", "PIN incorrecto. Te quedan " + intentosRestantes + " intentos.", "Aceptar");
-                return;
-            }
-
-            // Al tercer error: espera de 30 segundos
-            await DisplayAlertAsync("Error", "Demasiados intentos. Espera 30 segundos.", "Aceptar");
-            await EsperarBloqueo();
+            await IntentoFallidoAsync("PIN incorrecto.");
         }
         catch (Exception ex)
         {
@@ -137,24 +145,72 @@ public partial class vDesbloqueo : ContentPage
         }
     }
 
-    // V18: bloquea el ingreso del PIN durante 30 segundos con cuenta regresiva
+    // ===== Desbloquear con contraseña =====
+    private async void btnIngresarPassword_Clicked(object sender, EventArgs e)
+    {
+        try
+        {
+            if (!btnIngresarPassword.IsEnabled)
+            {
+                return;
+            }
+            string contrasena = txtPassword.Text ?? "";
+            if (contrasena.Length == 0)
+            {
+                await DisplayAlertAsync("Error", "Ingresa tu contraseña.", "Aceptar");
+                return;
+            }
+            bool correcta = await Task.Run(() => App.MovimientoRepo.VerificarContrasena(contrasena));
+            if (correcta)
+            {
+                await EntrarAsync();
+                return;
+            }
+            txtPassword.Text = "";
+            await IntentoFallidoAsync("Contraseña incorrecta.");
+        }
+        catch (Exception ex)
+        {
+            await DisplayAlertAsync("Error", ex.Message, "Aceptar");
+        }
+    }
+
+    // V18: cuenta el error; al tercero se espera 30 segundos
+    private async Task IntentoFallidoAsync(string mensaje)
+    {
+        intentosFallidos = intentosFallidos + 1;
+        int restantes = maximoIntentos - intentosFallidos;
+        if (restantes > 0)
+        {
+            await DisplayAlertAsync("Error", mensaje + " Te quedan " + restantes + " intentos.", "Aceptar");
+            return;
+        }
+        await DisplayAlertAsync("Error", "Demasiados intentos. Espera 30 segundos.", "Aceptar");
+        await EsperarBloqueo();
+    }
+
+    // V18: bloquea el ingreso durante 30 segundos con cuenta regresiva
     private async Task EsperarBloqueo()
     {
-        txtPin.IsEnabled = false;
-        btnDesbloquear.IsEnabled = false;
+        SetEntradaHabilitada(false);
         lblEspera.IsVisible = true;
-
         for (int segundos = segundosEspera; segundos > 0; segundos--)
         {
             lblEspera.Text = "Espera " + segundos + " segundos.";
             await Task.Delay(1000);
         }
-
         intentosFallidos = 0;
         lblEspera.IsVisible = false;
-        txtPin.IsEnabled = true;
-        btnDesbloquear.IsEnabled = true;
-        txtPin.Focus();
+        SetEntradaHabilitada(true);
+    }
+
+    private void SetEntradaHabilitada(bool habilitada)
+    {
+        txtPin.IsEnabled = habilitada;
+        btnDesbloquear.IsEnabled = habilitada;
+        txtPassword.IsEnabled = habilitada;
+        btnIngresarPassword.IsEnabled = habilitada;
+        btnHuella.IsEnabled = habilitada;
     }
 
     // V16: true si el texto tiene exactamente 4 números
@@ -164,7 +220,6 @@ public partial class vDesbloqueo : ContentPage
         {
             return false;
         }
-
         foreach (char c in pin)
         {
             if (!char.IsDigit(c))
@@ -172,7 +227,6 @@ public partial class vDesbloqueo : ContentPage
                 return false;
             }
         }
-
         return true;
     }
 }

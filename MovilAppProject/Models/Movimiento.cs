@@ -55,6 +55,10 @@ namespace MovilAppProject.Models
             }
         }
 
+        // Dueño del movimiento (tabla usuario). 0 = movimiento anterior al login; se asigna al registrarse.
+        [Indexed]
+        public int UsuarioId { get; set; }
+
         // --- Solo para mostrar en pantalla (no se guardan en la base) ---
         [Ignore]
         public string NombreCategoria { get; set; } = string.Empty;

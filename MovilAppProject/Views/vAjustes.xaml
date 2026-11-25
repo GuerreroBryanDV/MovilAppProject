@@ -25,34 +25,14 @@
             <Border Style="{StaticResource Tarjeta}">
                 <VerticalStackLayout Spacing="10">
 
-                    <Grid ColumnSpacing="10">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-
-                        <VerticalStackLayout Grid.Column="0"
-                                             VerticalOptions="Center">
-                            <Label Text="Bloqueo de la app"
-                                   Style="{StaticResource EtiquetaCampo}"
-                                   FontSize="15"/>
-                            <Label Text="Pide huella o PIN al abrir GastoFácil."
-                                   Style="{StaticResource TextoSecundario}"/>
-                        </VerticalStackLayout>
-
-                        <Switch x:Name="swBloqueo"
-                                Toggled="swBloqueo_Toggled"
-                                OnColor="{StaticResource ColorAhorro}"
-                                VerticalOptions="Center"
-                                Grid.Column="1"/>
-                    </Grid>
+                    <Label Text="Seguridad" Style="{StaticResource EtiquetaCampo}" FontSize="15"/>
+                    <Label x:Name="lblUsuarioActual" Style="{StaticResource TextoSecundario}"/>
 
                     <!-- D20: cambiar el PIN (solo con el bloqueo activo; pide el PIN actual) -->
                     <Button x:Name="btnCambiarPin"
                             Text="Cambiar PIN"
                             Clicked="btnCambiarPin_Clicked"
-                            Style="{StaticResource BotonSecundario}"
-                            IsVisible="False"/>
+                            Style="{StaticResource BotonSecundario}"/>
                     <!-- Formulario del PIN: aparece al activar el bloqueo o al cambiar el PIN -->
                     <VerticalStackLayout x:Name="slPin"
                                          Spacing="8"
@@ -200,7 +180,20 @@
                 </VerticalStackLayout>
             </Border>
 
-        </VerticalStackLayout>
+            <!-- ===== Cuenta: inactivar (borrado lógico) ===== -->
+            <Border Style="{StaticResource Tarjeta}">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Cuenta"
+                           Style="{StaticResource EtiquetaCampo}"
+                           FontSize="15"/>
+                    <Label Text="Inactivar la cuenta cierra tu sesión y permite registrar otro usuario. Tus datos se conservan en el historial."
+                           Style="{StaticResource TextoSecundario}"/>
+                    <Button x:Name="btnInactivarCuenta"
+                            Text="Inactivar cuenta"
+                            Clicked="btnInactivarCuenta_Clicked"
+                            Style="{StaticResource BotonSecundario}"/>
+                </VerticalStackLayout>
+            </Border>        </VerticalStackLayout>
     </ScrollView>
 
 </ContentPage>
