@@ -37,6 +37,13 @@ namespace MovilAppProject.Repositories
             _conn.CreateTable<Categoria>();
             _conn.CreateTable<Movimiento>();
             _conn.CreateTable<Usuario>();
+            // PB27: al agregar la columna UsuarioId a una base anterior al login, SQLite deja los
+            // movimientos existentes en NULL. Se pasan a 0 (sin dueño) y, si ya hay un usuario
+            // registrado, se asignan al primero, igual que hace RegistrarUsuario.
+            _conn.Execute("UPDATE movimiento SET UsuarioId = 0 WHERE UsuarioId IS NULL");
+            Usuario? primerUsuario = _conn.Table<Usuario>().OrderBy(u => u.Id).FirstOrDefault();
+            if (primerUsuario != null)
+                _conn.Execute("UPDATE movimiento SET UsuarioId = ? WHERE UsuarioId = 0", primerUsuario.Id);
 
             CargarDatosPredefinidos(_conn);
 
@@ -391,7 +398,7 @@ namespace MovilAppProject.Repositories
                 {
                     _conn!.Insert(usuario);
                     // Solo los movimientos sin dueño (de antes del login) se asignan al nuevo usuario
-                    _conn.Execute("UPDATE movimiento SET UsuarioId = ? WHERE UsuarioId = 0", usuario.Id);
+                    _conn.Execute("UPDATE movimiento SET UsuarioId = ? WHERE UsuarioId = 0 OR UsuarioId IS NULL", usuario.Id);
                 }
                 StatusMessage = "Usuario registrado";
                 return usuario;
