@@ -34,7 +34,7 @@ public partial class vDesbloqueo : ContentPage
         hayBiometria = disponible;
         if (hayBiometria)
         {
-            lblInstruccion.Text = "Desbloquea con tu huella o rostro";
+            lblInstruccion.Text = "Desbloquea con tu huella";
             btnHuella.IsVisible = true;
             slPin.IsVisible = false;
             slPassword.IsVisible = false;
@@ -94,7 +94,7 @@ public partial class vDesbloqueo : ContentPage
         {
             hayBiometria = false;
             btnHuella.IsVisible = false;
-            lblAvisoBiometria.Text = "No hay huella ni rostro registrado. Regístralo en los ajustes de seguridad del teléfono.";
+            lblAvisoBiometria.Text = "No hay huellas registradas. Regístrala en los ajustes de seguridad del teléfono.";
             lblAvisoBiometria.IsVisible = true;
         }
     }

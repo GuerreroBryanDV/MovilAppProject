@@ -50,7 +50,7 @@
                    TextColor="{StaticResource Primary}"
                    HorizontalOptions="Center"/>
             <Label x:Name="lblInstruccion"
-                   Text="Desbloquea con tu huella o Face ID"
+                   Text="Desbloquea con tu huella"
                    FontSize="15"
                    TextColor="{StaticResource Primary}"
                    HorizontalOptions="Center"

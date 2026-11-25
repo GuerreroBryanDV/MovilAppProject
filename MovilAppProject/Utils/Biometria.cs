@@ -72,9 +72,9 @@ namespace MovilAppProject.Utils
         {
             return estado switch
             {
-                BiometricHwStatus.NoHardware => "Este dispositivo no tiene lector de huella ni de rostro.",
+                BiometricHwStatus.NoHardware => "Este dispositivo no tiene lector de huella.",
                 BiometricHwStatus.NotEnrolled or BiometricHwStatus.PresentButNotEnrolled =>
-                    "No hay huella ni rostro registrado. Regístralo en los ajustes de seguridad del teléfono.",
+                    "No hay huellas registradas. Regístrala en los ajustes de seguridad del teléfono.",
                 BiometricHwStatus.LockedOut => "El lector está bloqueado temporalmente. Usa tu PIN o contraseña.",
                 _ => "La biometría no está disponible (" + estado + ")."
             };
