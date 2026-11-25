@@ -205,6 +205,24 @@ namespace MovilAppProject.Repositories
             return new List<Movimiento>();
         }
 
+        // PB25: todos los movimientos, para respaldarlos en MySQL (servicio web)
+        public List<Movimiento> ListarTodos()
+        {
+            try
+            {
+                Init();
+                lock (_bloqueo)
+                {
+                    return _conn!.Table<Movimiento>().OrderBy(m => m.Id).ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = "Error: " + ex.Message;
+            }
+            return new List<Movimiento>();
+        }
+
         // ---------------- Totales del mes (HU2 criterio 2 / PB07) ----------------
 
         public decimal ObtenerIngresosDelMes(int anio, int mes)
