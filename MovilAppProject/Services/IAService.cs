@@ -259,13 +259,25 @@ namespace MovilAppProject.Services
             return _config.TryGetValue(nombre, out string? valor) ? valor : string.Empty;
         }
 
+        // Android descarta los archivos que empiezan con punto; por eso el .env tambien se empaqueta como appenv.txt.
+        private static async Task<Stream> AbrirEnvAsync()
+        {
+            try
+            {
+                return await FileSystem.OpenAppPackageFileAsync("appenv.txt");
+            }
+            catch
+            {
+                return await FileSystem.OpenAppPackageFileAsync(".env");
+            }
+        }
         private static async Task<Dictionary<string, string>> CargarEnvAsync()
         {
             Dictionary<string, string> valores = new();
 
             try
             {
-                using Stream archivo = await FileSystem.OpenAppPackageFileAsync(".env");
+                using Stream archivo = await AbrirEnvAsync();
                 using StreamReader lector = new(archivo);
 
                 string? linea;

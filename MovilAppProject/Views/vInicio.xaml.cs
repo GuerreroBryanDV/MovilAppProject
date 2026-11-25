@@ -129,8 +129,8 @@ public partial class vInicio : ContentPage
             lblEgresos.Text = FormatoMonto(egresos);
 
             MostrarRegla(regla);
-            MostrarRecomendacion(ingresos, egresos);
             MostrarMovimientos(movimientos);
+            await MostrarRecomendacionAsync(regla, ingresos, egresos, carga);
         }
         catch (Exception ex)
         {
@@ -182,20 +182,51 @@ public partial class vInicio : ContentPage
         lblEnMeta.Text = resultado.GruposEnMeta + " de " + resultado.Grupos.Count + " en meta";
     }
 
-    // ===== Recomendación IA (texto provisional hasta el Sprint 4) =====
-    private void MostrarRecomendacion(decimal ingresos, decimal egresos)
+    // ===== Recomendación IA =====
+    // Se guarda la última respuesta: si los datos del mes no cambiaron, se reutiliza
+    // y no se vuelve a consultar a la IA cada vez que se abre la pantalla.
+    static string ultimaClaveIA = "";
+    static string ultimoTextoIA = "";
+
+    private async Task MostrarRecomendacionAsync(ResultadoRegla regla, decimal ingresos, decimal egresos, int carga)
     {
+        lblRecomendacion.MaxLines = 4;
+        lblRecomendacion.LineBreakMode = LineBreakMode.TailTruncation;
+
         // V24: se necesita al menos un ingreso y un gasto en el mes
         if (ingresos == 0 || egresos == 0)
         {
             lblRecomendacion.Text = "Registra al menos un ingreso y un gasto este mes para recibir recomendaciones.";
+            return;
+        }
+
+        string clave = FiltroMes.Mes.Year + "-" + FiltroMes.Mes.Month + "|" + ingresos + "|" + egresos + "|"
+                     + string.Join(",", regla.Grupos.Select(g => g.GrupoId + ":" + g.Progreso));
+        if (clave == ultimaClaveIA && ultimoTextoIA != "")
+        {
+            lblRecomendacion.Text = ultimoTextoIA;
+            return;
+        }
+
+        lblRecomendacion.Text = ultimoTextoIA != "" ? ultimoTextoIA : "Consultando a la IA...";
+        ResultadoIA respuesta = await App.IAService.ObtenerRecomendacionesAsync(regla);
+
+        // Si mientras tanto se cambió de mes, este resultado ya no sirve
+        if (carga != cargaActual)
+        {
+            return;
+        }
+        if (respuesta.Exito)
+        {
+            ultimaClaveIA = clave;
+            ultimoTextoIA = respuesta.Texto;
+            lblRecomendacion.Text = respuesta.Texto;
         }
         else
         {
-            lblRecomendacion.Text = "Las recomendaciones con IA estarán disponibles próximamente.";
+            lblRecomendacion.Text = respuesta.Mensaje;
         }
     }
-
     // ===== Últimos movimientos (PB08) =====
     private void MostrarMovimientos(List<Movimiento> movimientos)
     {

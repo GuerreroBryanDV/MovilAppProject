@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>net10.0-android</TargetFrameworks>
@@ -63,6 +63,8 @@
 
 		<!-- Raw Assets (also remove the "Resources\Raw" prefix) -->
 		<MauiAsset Include="Resources\Raw\**" LogicalName="%(RecursiveDir)%(Filename)%(Extension)" />
+		<!-- Android no empaqueta archivos que empiezan con punto: se incluye el .env tambien como appenv.txt -->
+		<MauiAsset Include="Resources\Raw\.env" Condition="Exists('Resources\Raw\.env')" LogicalName="appenv.txt" />
 	</ItemGroup>
 
 	<ItemGroup>
