@@ -31,7 +31,10 @@ Mismo patrón que el ejemplo `ws_estudiante` de la Semana 6.
 
 ## Notas
 
-- En el emulador Android la app usa `http://10.0.2.2/...` (es el localhost de la PC);
-  en Windows usa `http://localhost/...`.
+- En Windows la app usa `http://localhost/...` y en el emulador Android `http://10.0.2.2/...`.
+- **Celular Android real:** en la PC ejecuta `ipconfig` y copia la "Dirección IPv4" del Wi-Fi.
+  Ponla en `IpComputadora` dentro de `Services/ServicioWeb.cs`. El celular y la PC deben
+  estar en el mismo Wi-Fi, y el Firewall de Windows debe permitir Apache (redes privadas).
+  Prueba primero en el navegador del celular: `http://TU_IP/ws_gastofacil/movimiento_ws.php`.
 - Si XAMPP está apagado, la app funciona igual con SQLite y se pone al día después.
 - El PIN y los ajustes no se suben: son datos del dispositivo (SecureStorage / Preferences).

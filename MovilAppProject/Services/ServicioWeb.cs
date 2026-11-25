@@ -16,11 +16,27 @@ namespace MovilAppProject.Services
     // la app funciona igual y lo pendiente se envía en la siguiente sincronización.
     public static class ServicioWeb
     {
-        // En el emulador de Android, 10.0.2.2 es el "localhost" de la computadora
-        private static string Url =>
-            DeviceInfo.Platform == DevicePlatform.Android
-                ? "http://10.0.2.2/ws_gastofacil/movimiento_ws.php"
-                : "http://localhost/ws_gastofacil/movimiento_ws.php";
+        // IP de la computadora que tiene XAMPP, para probar en un celular Android real.
+        // Se ve en la PC con el comando ipconfig ("Dirección IPv4" del Wi-Fi).
+        // El celular y la PC deben estar conectados al mismo Wi-Fi.
+        private const string IpComputadora = "192.168.1.100";
+
+        // Windows: localhost
+        // Emulador de Android: 10.0.2.2 (es el "localhost" de la computadora)
+        // Celular Android real: la IP de la computadora
+        private static string Url
+        {
+            get
+            {
+                if (DeviceInfo.Platform != DevicePlatform.Android)
+                    return "http://localhost/ws_gastofacil/movimiento_ws.php";
+
+                if (DeviceInfo.DeviceType == DeviceType.Virtual)
+                    return "http://10.0.2.2/ws_gastofacil/movimiento_ws.php";
+
+                return "http://" + IpComputadora + "/ws_gastofacil/movimiento_ws.php";
+            }
+        }
 
         private static readonly HttpClient cliente = new() { Timeout = TimeSpan.FromSeconds(5) };
 
