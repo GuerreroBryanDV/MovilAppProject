@@ -11,5 +11,7 @@ namespace MovilAppProject.Models
         public int categoria_id { get; set; }
         public string fecha { get; set; } = string.Empty;
         public string? nota { get; set; }
+        // PB27: uid del usuario dueño (null = movimiento anterior al login)
+        public string? usuario_uid { get; set; }
     }
 }

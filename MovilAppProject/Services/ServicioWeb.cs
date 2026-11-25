@@ -24,19 +24,22 @@ namespace MovilAppProject.Services
         // Windows: localhost
         // Emulador de Android: 10.0.2.2 (es el "localhost" de la computadora)
         // Celular Android real: la IP de la computadora
-        private static string Url
+        private static string Servidor
         {
             get
             {
                 if (DeviceInfo.Platform != DevicePlatform.Android)
-                    return "http://localhost/ws_gastofacil/movimiento_ws.php";
-
+                    return "http://localhost/ws_gastofacil/";
                 if (DeviceInfo.DeviceType == DeviceType.Virtual)
-                    return "http://10.0.2.2/ws_gastofacil/movimiento_ws.php";
-
-                return "http://" + IpComputadora + "/ws_gastofacil/movimiento_ws.php";
+                    return "http://10.0.2.2/ws_gastofacil/";
+                return "http://" + IpComputadora + "/ws_gastofacil/";
             }
         }
+
+        private static string Url => Servidor + "movimiento_ws.php";
+
+        // PB27: usuarios del login (alta e inactivación = borrado lógico)
+        private static string UrlUsuarios => Servidor + "usuario_ws.php";
 
         private static readonly HttpClient cliente = new() { Timeout = TimeSpan.FromSeconds(5) };
 
@@ -49,10 +52,10 @@ namespace MovilAppProject.Services
         // ===== Envíos de una operación (se llaman desde vMovimiento) =====
 
         public static Task AgregarAsync(Movimiento m) =>
-            EjecutarAsync(() => { Enviar(m, "POST"); });
+            EjecutarAsync(() => { EnviarDueno(m); Enviar(m, "POST", UidDe(m)); });
 
         public static Task ActualizarAsync(Movimiento m) =>
-            EjecutarAsync(() => { Enviar(m, "PUT"); });
+            EjecutarAsync(() => { EnviarDueno(m); Enviar(m, "PUT", UidDe(m)); });
 
         public static Task EliminarAsync(int id) =>
             EjecutarAsync(() => { Eliminar(id); });
@@ -66,6 +69,9 @@ namespace MovilAppProject.Services
             try
             {
                 List<Movimiento> locales = App.MovimientoRepo.ListarTodos();
+                // PB27: uid de cada usuario local (los movimientos se envían con el uid de su dueño)
+                List<Usuario> usuarios = App.MovimientoRepo.ListarUsuarios();
+                Dictionary<int, string> uidPorId = usuarios.ToDictionary(u => u.Id, u => u.Uid);
                 List<MovimientoWS>? servidor = await ListarServidorAsync();
 
                 // XAMPP apagado o sin red: se intenta en la siguiente sincronización
@@ -77,12 +83,17 @@ namespace MovilAppProject.Services
 
                 await Task.Run(() =>
                 {
+                    // PB27: primero los usuarios (activos e inactivos), porque los movimientos
+                    // apuntan a ellos. Una cuenta inactivada queda en el servidor con activo = 0.
+                    foreach (Usuario u in usuarios)
+                        EnviarUsuario(u);
                     foreach (Movimiento m in locales)
                     {
+                        string uid = uidPorId.TryGetValue(m.UsuarioId, out string? valor) ? valor : "";
                         if (!enServidor.TryGetValue(m.Id, out MovimientoWS? s))
-                            Enviar(m, "POST");
-                        else if (!Igual(m, s))
-                            Enviar(m, "PUT");
+                            Enviar(m, "POST", uid);
+                        else if (!Igual(m, s, uid))
+                            Enviar(m, "PUT", uid);
                     }
 
                     foreach (MovimientoWS s in servidor)
@@ -141,7 +152,7 @@ namespace MovilAppProject.Services
         }
 
         // Datos del movimiento con el formato de MySQL (punto decimal y fecha aaaa-MM-dd)
-        private static NameValueCollection Parametros(Movimiento m)
+        private static NameValueCollection Parametros(Movimiento m, string uid)
         {
             NameValueCollection parametros = new();
             parametros.Add("codigo", m.Id.ToString());
@@ -150,17 +161,19 @@ namespace MovilAppProject.Services
             parametros.Add("categoria_id", m.CategoriaId.ToString());
             parametros.Add("fecha", m.Fecha.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture));
             parametros.Add("nota", m.Nota ?? "");
+            // PB27: vacío = movimiento anterior al login (en MySQL queda NULL)
+            parametros.Add("usuario_uid", uid);
             return parametros;
         }
 
 #pragma warning disable SYSLIB0014 // WebClient: es el que se usó en la Semana 6
         // Los errores (XAMPP apagado, sin red) se atrapan aquí mismo para que
         // Visual Studio no detenga la app y para que SQLite siga funcionando.
-        private static bool Enviar(Movimiento m, string metodo)
+        private static bool Enviar(Movimiento m, string metodo, string uid)
         {
             try
             {
-                NameValueCollection parametros = Parametros(m);
+                NameValueCollection parametros = Parametros(m, uid);
                 using WebClient web = new();
 
                 if (metodo == "POST")
@@ -200,16 +213,53 @@ namespace MovilAppProject.Services
                 return false;
             }
         }
+        // PB27: POST del usuario (el servidor inserta o actualiza por uid).
+        // No se envían la contraseña ni el PIN: se quedan cifrados en el teléfono.
+        private static bool EnviarUsuario(Usuario u)
+        {
+            try
+            {
+                NameValueCollection parametros = new();
+                parametros.Add("uid", u.Uid);
+                parametros.Add("nombre", u.Nombre);
+                parametros.Add("activo", u.Activo ? "1" : "0");
+                parametros.Add("fecha_creacion", u.FechaCreacion.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture));
+                parametros.Add("fecha_baja", u.FechaBaja?.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) ?? "");
+                using WebClient web = new();
+                web.UploadValues(UrlUsuarios, "POST", parametros);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = "Error: " + ex.Message;
+                return false;
+            }
+        }
 #pragma warning restore SYSLIB0014
 
+        // PB27: uid del dueño de un movimiento ("" si es anterior al login)
+        private static string UidDe(Movimiento m)
+        {
+            return App.MovimientoRepo.ListarUsuarios().FirstOrDefault(u => u.Id == m.UsuarioId)?.Uid ?? "";
+        }
+
+        // PB27: asegura que el dueño exista en el servidor antes de enviar su movimiento
+        private static void EnviarDueno(Movimiento m)
+        {
+            Usuario? dueno = App.MovimientoRepo.ListarUsuarios().FirstOrDefault(u => u.Id == m.UsuarioId);
+            if (dueno != null)
+                EnviarUsuario(dueno);
+        }
+
         // true si el movimiento de SQLite y el de MySQL tienen los mismos datos
-        private static bool Igual(Movimiento m, MovimientoWS s)
+        private static bool Igual(Movimiento m, MovimientoWS s, string uid)
         {
             return m.Tipo.ToString() == s.tipo
                 && m.Monto == s.monto
                 && m.CategoriaId == s.categoria_id
                 && m.Fecha.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture) == s.fecha
-                && (m.Nota ?? "") == (s.nota ?? "");
+                && (m.Nota ?? "") == (s.nota ?? "")
+                && uid == (s.usuario_uid ?? "");
         }
     }
 }

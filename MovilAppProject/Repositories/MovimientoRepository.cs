@@ -403,6 +403,24 @@ namespace MovilAppProject.Repositories
             }
         }
 
+        // Todos los usuarios, activos e inactivos (para respaldarlos en el servicio web)
+        public List<Usuario> ListarUsuarios()
+        {
+            try
+            {
+                Init();
+                lock (_bloqueo)
+                {
+                    return _conn!.Table<Usuario>().OrderBy(u => u.Id).ToList();
+                }
+            }
+            catch (Exception ex)
+            {
+                StatusMessage = "Error: " + ex.Message;
+                return new List<Usuario>();
+            }
+        }
+
         // true si la contraseña coincide con la del usuario activo
         public bool VerificarContrasena(string contrasena)
         {

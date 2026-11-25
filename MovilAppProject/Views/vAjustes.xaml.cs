@@ -133,6 +133,8 @@ public partial class vAjustes : ContentPage
             Utils.PinStorage.Borrar();
             Preferences.Set(ClaveBloqueo, false);
             Utils.Sesion.Cerrar();
+            // PB27: la cuenta queda inactiva (activo = 0, fecha de baja) también en el servidor
+            _ = Services.ServicioWeb.SincronizarAsync();
             await DisplayAlertAsync("Ajustes", "Cuenta inactivada.", "Aceptar");
             // Se reconstruye la app: sin usuario activo muestra el registro
             Application.Current!.Windows[0].Page = new AppShell();

@@ -9,10 +9,12 @@ include "config.php";
 include "utils.php";
 
 $dbConn = connect($db);
+migrar($dbConn);  // PB27: tabla usuario y columna usuario_uid
 header('Content-Type: application/json; charset=utf-8');
 
 // Columnas que se pueden guardar (evita nombres de columna inventados)
-$columnas = ['codigo', 'tipo', 'monto', 'categoria_id', 'fecha', 'nota'];
+// PB27: usuario_uid = dueño del movimiento (tabla usuario)
+$columnas = ['codigo', 'tipo', 'monto', 'categoria_id', 'fecha', 'nota', 'usuario_uid'];
 
 function soloColumnas($input, $columnas)
 {
@@ -47,8 +49,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
 // ===== Insertar =====
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $input = soloColumnas($_POST, $columnas);
-    $sql = "INSERT INTO movimiento (codigo, tipo, monto, categoria_id, fecha, nota)
-            VALUES (:codigo, :tipo, :monto, :categoria_id, :fecha, :nota)";
+    $sql = "INSERT INTO movimiento (codigo, tipo, monto, categoria_id, fecha, nota, usuario_uid)
+            VALUES (:codigo, :tipo, :monto, :categoria_id, :fecha, :nota, :usuario_uid)";
     $statement = $dbConn->prepare($sql);
     $statement->bindValue(':codigo', $input['codigo']);
     $statement->bindValue(':tipo', $input['tipo']);
@@ -56,6 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $statement->bindValue(':categoria_id', $input['categoria_id']);
     $statement->bindValue(':fecha', $input['fecha']);
     $statement->bindValue(':nota', isset($input['nota']) && $input['nota'] !== '' ? $input['nota'] : null);
+    $statement->bindValue(':usuario_uid', isset($input['usuario_uid']) && $input['usuario_uid'] !== '' ? $input['usuario_uid'] : null);
     $statement->execute();
     header("HTTP/1.1 200 OK");
     echo json_encode($input);
@@ -67,6 +70,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
     $input = soloColumnas($_GET, $columnas);
     $codigo = $input['codigo'];
     unset($input['codigo']);
+    // Vacío = sin dueño (movimiento anterior al login) o sin nota
+    foreach (['usuario_uid', 'nota'] as $opcional) {
+        if (isset($input[$opcional]) && $input[$opcional] === '') {
+            $input[$opcional] = null;
+        }
+    }
     $fields = getParams($input);
     $sql = "UPDATE movimiento SET $fields WHERE codigo=:codigo";
     $statement = $dbConn->prepare($sql);

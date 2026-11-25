@@ -1,7 +1,9 @@
 -- PB25 · MAP-25 · Respaldo de la base de GastoFácil en MySQL (XAMPP)
 -- Importar en phpMyAdmin: pestaña "Importar" > este archivo > "Continuar".
 -- Las tablas tienen los mismos datos que la base SQLite de la app
--- (grupo_presupuesto, categoria y movimiento) y los mismos Id.
+-- (grupo_presupuesto, categoria, usuario y movimiento) y los mismos Id.
+-- Si ya importaste una versión anterior, no hace falta volver a importarla: el servicio web
+-- crea la tabla usuario y la columna movimiento.usuario_uid solo (función migrar en utils.php).
 
 CREATE DATABASE IF NOT EXISTS gastofacil_ws
   CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -23,6 +25,15 @@ CREATE TABLE IF NOT EXISTS categoria (
   FOREIGN KEY (grupo_id) REFERENCES grupo_presupuesto(codigo)
 );
 
+-- PB27 · Usuarios del login (uno activo por dispositivo). Borrado lógico: activo = 0 y fecha_baja.
+-- La contraseña y el PIN no se guardan aquí: se quedan cifrados en el teléfono.
+CREATE TABLE IF NOT EXISTS usuario (
+  uid            VARCHAR(36) PRIMARY KEY,
+  nombre         VARCHAR(20) NOT NULL,
+  activo         TINYINT(1)  NOT NULL DEFAULT 1,
+  fecha_creacion DATETIME    NOT NULL,
+  fecha_baja     DATETIME    NULL
+);
 -- Movimientos: codigo = Id del movimiento en SQLite
 CREATE TABLE IF NOT EXISTS movimiento (
   codigo       INT PRIMARY KEY,
@@ -31,7 +42,9 @@ CREATE TABLE IF NOT EXISTS movimiento (
   categoria_id INT NOT NULL,
   fecha        DATE NOT NULL,
   nota         VARCHAR(100) NULL,
-  FOREIGN KEY (categoria_id) REFERENCES categoria(codigo)
+  usuario_uid  VARCHAR(36) NULL,               -- PB27: dueño (NULL = anterior al login)
+  FOREIGN KEY (categoria_id) REFERENCES categoria(codigo),
+  FOREIGN KEY (usuario_uid) REFERENCES usuario(uid)
 );
 
 INSERT IGNORE INTO grupo_presupuesto (codigo, nombre, orden) VALUES
